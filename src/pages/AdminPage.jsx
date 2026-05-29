@@ -89,9 +89,13 @@ function AdminPage() {
 
     setSavingGift(true)
 
-    const { error } = await supabase.from('presentes').insert({
-      nome: giftName.trim(),
-    })
+    const { data: createdGift, error } = await supabase
+      .from('presentes')
+      .insert({
+        nome: giftName.trim(),
+      })
+      .select('id, nome, created_at')
+      .single()
 
     if (error) {
       if (error.code === '23505') {
@@ -101,6 +105,10 @@ function AdminPage() {
       }
       setSavingGift(false)
       return
+    }
+
+    if (createdGift) {
+      setPresentes((currentPresentes) => [...currentPresentes, createdGift])
     }
 
     setGiftName('')
@@ -119,6 +127,10 @@ function AdminPage() {
       setDeletingGiftId(null)
       return
     }
+
+    setPresentes((currentPresentes) =>
+      currentPresentes.filter((item) => item.id !== giftId),
+    )
 
     toast.success('Presente removido da lista.')
     setDeletingGiftId(null)
