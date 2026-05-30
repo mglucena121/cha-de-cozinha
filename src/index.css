@@ -31,7 +31,7 @@
 	--ring: oklch(0.65 0.12 55);
 
 	--gold: oklch(0.78 0.105 80);                /* soft gold */
-	--wine: oklch(0.38 0.09 20);                 /* gentle wine */
+	--wine: oklch(0.48 0.09 20);                 /* gentle wine (lighter test) */
 	--rust: oklch(0.6 0.14 45);                  /* warm rust */
 
 	/* Legacy hex vars for compatibility */
