@@ -42,6 +42,14 @@ function AdminPage() {
     )
   }, [confirmacoes, searchTerm])
 
+  const confirmedGiftIds = useMemo(() => {
+    return new Set(
+      convidadas
+        .filter((item) => item.status === 'confirmada' && item.presente_id)
+        .map((item) => item.presente_id),
+    )
+  }, [convidadas])
+
   const loadData = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
       setLoadingData(true)
@@ -380,10 +388,17 @@ function AdminPage() {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {presentes.map((item) => (
+                {presentes.map((item) => {
+                  const isConfirmed = confirmedGiftIds.has(item.id)
+
+                  return (
                   <article
                     key={item.id}
-                    className="group rounded-2xl border border-border bg-card p-5 elegant-shadow transition hover:border-gold/40"
+                    className={`group rounded-2xl border bg-card p-5 elegant-shadow transition ${
+                      isConfirmed
+                        ? 'border-[rgba(60,138,86,0.35)] hover:border-[rgba(60,138,86,0.5)]'
+                        : 'border-border hover:border-gold/40'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -402,11 +417,14 @@ function AdminPage() {
                     </div>
 
                     <div className="mt-4 flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Aguardando</span>
+                      <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-gold'}`} />
+                      <span className={`text-[10px] uppercase tracking-[0.2em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
+                        {isConfirmed ? 'Confirmado' : 'Aguardando'}
+                      </span>
                     </div>
                   </article>
-                ))}
+                  )
+                })}
               </div>
             )}
           </section>
