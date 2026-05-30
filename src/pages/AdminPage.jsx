@@ -281,104 +281,129 @@ function AdminPage() {
   }, [])
 
   return (
-    <main className="app-shell min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <header className="glass-card fade-rise flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Dashboard</p>
-            <h1 className="text-3xl text-[var(--ink)] sm:text-4xl">Administracao do Cha</h1>
+    <main className="app-shell min-h-screen">
+      <header className="sticky top-0 z-30 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="inline-flex items-center gap-2">
+            <Gift size={14} className="text-gold" />
+            <span className="font-serif text-xl text-wine">Chá de Cozinha</span>
           </div>
 
-          <button type="button" onClick={handleLogout} className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-3">
-            <LogOut size={18} />
-            Sair
-          </button>
-        </header>
+          <nav className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSection('presentes')}
+              className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                activeSection === 'presentes'
+                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(161, 38, 38, 0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
+                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+              }`}
+            >
+              <Gift size={15} className="transition-transform duration-300 group-hover:scale-110" />
+              <span className="hidden sm:inline">Lista de Presentes</span>
+            </button>
 
-        <nav className="glass-card fade-rise grid gap-3 p-4 sm:grid-cols-3 sm:p-5">
-          <button
-            type="button"
-            onClick={() => setActiveSection('presentes')}
-            className={`rounded-2xl border px-4 py-3 text-left text-[var(--ink)] transition hover:-translate-y-0.5 ${
-              activeSection === 'presentes'
-                ? 'border-[rgba(179,90,60,0.5)] bg-[rgba(255,252,247,0.95)] shadow-[0_8px_20px_rgba(93,58,42,0.08)]'
-                : 'border-[rgba(140,100,74,0.16)] bg-[rgba(255,252,247,0.88)] hover:border-[rgba(179,90,60,0.4)]'
-            }`}
-          >
-            <span className="inline-flex items-center gap-2 text-lg"><Gift size={18} /> Lista de Presentes</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('confirmacoes')}
-            className={`rounded-2xl border px-4 py-3 text-left text-[var(--ink)] transition hover:-translate-y-0.5 ${
-              activeSection === 'confirmacoes'
-                ? 'border-[rgba(179,90,60,0.5)] bg-[rgba(255,252,247,0.95)] shadow-[0_8px_20px_rgba(93,58,42,0.08)]'
-                : 'border-[rgba(140,100,74,0.16)] bg-[rgba(255,252,247,0.88)] hover:border-[rgba(179,90,60,0.4)]'
-            }`}
-          >
-            <span className="inline-flex items-center gap-2 text-lg"><HeartHandshake size={18} /> Confirmacoes</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection('convidadas')}
-            className={`rounded-2xl border px-4 py-3 text-left text-[var(--ink)] transition hover:-translate-y-0.5 ${
-              activeSection === 'convidadas'
-                ? 'border-[rgba(179,90,60,0.5)] bg-[rgba(255,252,247,0.95)] shadow-[0_8px_20px_rgba(93,58,42,0.08)]'
-                : 'border-[rgba(140,100,74,0.16)] bg-[rgba(255,252,247,0.88)] hover:border-[rgba(179,90,60,0.4)]'
-            }`}
-          >
-            <span className="inline-flex items-center gap-2 text-lg"><Users size={18} /> Lista de Convidados</span>
-          </button>
-        </nav>
+            <button
+              type="button"
+              onClick={() => setActiveSection('confirmacoes')}
+              className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                activeSection === 'confirmacoes'
+                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
+                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+              }`}
+            >
+              <HeartHandshake size={15} className="transition-transform duration-300 group-hover:scale-110" />
+              <span className="hidden sm:inline">Confirmações</span>
+            </button>
 
+            <button
+              type="button"
+              onClick={() => setActiveSection('convidadas')}
+              className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                activeSection === 'convidadas'
+                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
+                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+              }`}
+            >
+              <Users size={15} className="transition-transform duration-300 group-hover:scale-110" />
+              <span className="hidden sm:inline">Lista de Convidados</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="ml-1 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-semibold uppercase tracking-wider text-[rgb(120,53,34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]"
+            >
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         {activeSection === 'presentes' ? (
-          <section className="glass-card fade-rise p-5 sm:p-6">
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl text-[var(--ink)] sm:text-3xl">Lista de Presentes</h2>
-                <p className="text-[var(--earth)]">Adicione, visualize e remova itens da lista oficial.</p>
+                <h1 className="font-serif text-4xl text-wine">Lista de Presentes</h1>
+                <div className="gold-divider mt-3 w-28" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {presentes.length} presente{presentes.length !== 1 && 's'} • {confirmacoes.length} confirmado{confirmacoes.length !== 1 && 's'}
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => loadData()}
-                  className="rounded-full border border-[rgba(140,100,74,0.26)] bg-[rgba(255,255,255,0.62)] p-3 text-[var(--earth)] transition hover:bg-[rgba(255,255,255,0.85)]"
+                  className="rounded-full border border-border bg-card px-3 py-3 text-muted-foreground transition hover:text-wine"
                   aria-label="Atualizar dados"
                 >
                   <RefreshCw size={16} />
                 </button>
 
-                <button type="button" onClick={() => setIsModalOpen(true)} className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-3">
+                <button type="button" onClick={() => setIsModalOpen(true)} className="font-sans inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground elegant-shadow transition hover:opacity-90">
                   <Plus size={18} />
-                  Novo presente
+                  Adicionar presente
                 </button>
               </div>
             </div>
 
             {loadingData ? (
-              <div className="rounded-2xl border border-[rgba(140,100,74,0.16)] bg-[rgba(255,255,255,0.64)] p-8 text-center">
-                <p className="inline-flex items-center gap-2 text-[var(--earth)]"><Loader2 size={18} className="animate-spin" /> Carregando presentes...</p>
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : presentes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.32)] bg-[rgba(255,255,255,0.54)] p-8 text-center text-[var(--earth)]">
-                Nenhum presente cadastrado ainda.
+              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+                <p className="text-sm text-muted-foreground">Nenhum presente cadastrado ainda.</p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {presentes.map((item) => (
-                  <article key={item.id} className="rounded-2xl border border-[rgba(140,100,74,0.2)] bg-[rgba(255,252,247,0.9)] p-4 shadow-[0_6px_18px_rgba(84,52,38,0.08)] transition hover:-translate-y-0.5">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xl text-[var(--ink)]">{item.nome}</p>
+                  <article
+                    key={item.id}
+                    className="group rounded-2xl border border-border bg-card p-5 elegant-shadow transition hover:border-gold/40"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-serif text-2xl text-wine">{item.nome}</p>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => handleDeleteGift(item.id)}
                         disabled={deletingGiftId === item.id}
-                        className="rounded-full border border-[rgba(179,90,60,0.36)] p-2 text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.08)] disabled:cursor-not-allowed"
+                        className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive disabled:cursor-not-allowed"
                         aria-label={`Excluir ${item.nome}`}
                       >
                         {deletingGiftId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                       </button>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Aguardando</span>
                     </div>
                   </article>
                 ))}
@@ -386,83 +411,106 @@ function AdminPage() {
             )}
           </section>
         ) : activeSection === 'confirmacoes' ? (
-          <section className="glass-card fade-rise p-5 sm:p-6">
-            <div className="mb-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+          <section className="animate-fade-up">
+            <div className="mb-6 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
               <div>
-                <h2 className="text-2xl text-[var(--ink)] sm:text-3xl">Confirmacoes</h2>
-                <p className="text-[var(--earth)]">Visualize quem ja confirmou e qual presente escolheu.</p>
+                <h1 className="font-serif text-4xl text-wine">Confirmacoes</h1>
+                <div className="gold-divider mt-3 w-32" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {confirmacoes.length} pessoa{confirmacoes.length !== 1 && 's'} confirmaram presenca.
+                </p>
               </div>
 
-              <label className="flex items-center gap-2 rounded-full border border-[rgba(140,100,74,0.24)] bg-[rgba(255,255,255,0.7)] px-4 py-2.5">
-                <Search size={16} className="text-[var(--earth)]" />
+              <label className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5">
+                <Search size={16} className="text-muted-foreground" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Buscar nome ou presente"
-                  className="w-full bg-transparent text-[var(--ink)] outline-none placeholder:text-[var(--earth-soft)] md:min-w-[240px]"
+                  className="w-full bg-transparent text-[var(--ink)] outline-none placeholder:text-muted-foreground md:min-w-[240px]"
                 />
               </label>
             </div>
 
-            <div className="mb-4 grid gap-3 sm:grid-cols-3">
-              <article className="rounded-2xl border border-[rgba(140,100,74,0.18)] bg-[rgba(255,252,247,0.88)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--gold)]">Presentes ativos</p>
+            <div className="mb-5 grid gap-3 sm:grid-cols-3">
+              <article className="rounded-2xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-gold">Presentes ativos</p>
                 <p className="mt-1 text-3xl text-[var(--ink)]">{presentes.length}</p>
               </article>
 
-              <article className="rounded-2xl border border-[rgba(140,100,74,0.18)] bg-[rgba(255,252,247,0.88)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--gold)]">Confirmacoes</p>
+              <article className="rounded-2xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-gold">Confirmacoes</p>
                 <p className="mt-1 text-3xl text-[var(--ink)]">{confirmacoes.length}</p>
               </article>
 
-              <article className="rounded-2xl border border-[rgba(140,100,74,0.18)] bg-[rgba(255,252,247,0.88)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--gold)]">Resultado busca</p>
+              <article className="rounded-2xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-gold">Resultado busca</p>
                 <p className="mt-1 text-3xl text-[var(--ink)]">{filteredConfirmacoes.length}</p>
               </article>
             </div>
 
             {loadingData ? (
-              <div className="rounded-2xl border border-[rgba(140,100,74,0.16)] bg-[rgba(255,255,255,0.64)] p-8 text-center">
-                <p className="inline-flex items-center gap-2 text-[var(--earth)]"><Loader2 size={18} className="animate-spin" /> Carregando confirmacoes...</p>
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : confirmacoes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.32)] bg-[rgba(255,255,255,0.54)] p-8 text-center text-[var(--earth)]">
-                Ainda nao ha confirmacoes.
+              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+                <p className="text-sm text-muted-foreground">Ainda nao ha confirmacoes.</p>
               </div>
             ) : filteredConfirmacoes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.32)] bg-[rgba(255,255,255,0.54)] p-8 text-center text-[var(--earth)]">
-                Nenhum resultado para essa busca.
+              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+                <p className="text-sm text-muted-foreground">Nenhum resultado para essa busca.</p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredConfirmacoes.map((item) => (
-                  <article key={item.id} className="rounded-2xl border border-[rgba(140,100,74,0.2)] bg-[rgba(255,252,247,0.9)] p-4 shadow-[0_6px_18px_rgba(84,52,38,0.08)] transition hover:-translate-y-0.5">
-                    <p className="text-xl text-[var(--ink)]">{item.primeiro_nome}</p>
-                    <p className="mt-1 text-[var(--earth)]">{item.presente_nome}</p>
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-border bg-card p-5 elegant-shadow transition hover:border-gold/40"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-secondary font-serif text-wine">
+                        {item.primeiro_nome?.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate font-serif text-lg text-wine">{item.primeiro_nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="gold-divider my-4" />
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <Gift size={16} className="text-gold" />
+                      <span className="truncate text-[var(--ink)]">{item.presente_nome}</span>
+                    </div>
                   </article>
                 ))}
               </div>
             )}
           </section>
         ) : (
-          <section className="glass-card fade-rise p-5 sm:p-6">
+          <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-              <article className="rounded-2xl border border-[rgba(140,100,74,0.18)] bg-[rgba(255,252,247,0.88)] p-4">
-                <h2 className="text-2xl text-[var(--ink)] sm:text-3xl">Lista de Convidados</h2>
-                <p className="mt-1 text-[var(--earth)]">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
-                <p className="mt-3 text-sm text-[var(--earth)]">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
+              <article className="rounded-2xl border border-border bg-card p-4">
+                <h2 className="font-serif text-3xl text-wine">Lista de Convidados</h2>
+                <p className="mt-1 text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
+                <p className="mt-3 text-sm text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
               </article>
 
-              <form onSubmit={handleAddGuest} className="rounded-2xl border border-[rgba(140,100,74,0.18)] bg-[rgba(255,252,247,0.88)] p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--gold)]">Nova convidada</p>
+              <form onSubmit={handleAddGuest} className="rounded-2xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-gold">Nova convidada</p>
                 <div className="mt-3 grid gap-3">
                   <input
                     type="text"
                     value={guestName}
                     onChange={(event) => setGuestName(event.target.value)}
                     placeholder="Nome completo"
-                    className="w-full rounded-2xl border border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.88)] px-4 py-3 text-[var(--ink)] outline-none transition focus:border-[var(--rust)] focus:ring-2 focus:ring-[rgba(179,90,60,0.2)]"
+                    className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                   />
                   <input
                     type="text"
@@ -470,7 +518,7 @@ function AdminPage() {
                     value={guestWhatsapp}
                     onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                     placeholder="WhatsApp com DDD (somente numeros)"
-                    className="w-full rounded-2xl border border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.88)] px-4 py-3 text-[var(--ink)] outline-none transition focus:border-[var(--rust)] focus:ring-2 focus:ring-[rgba(179,90,60,0.2)]"
+                    className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                   />
                   <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-3 disabled:opacity-70">
                     {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
@@ -481,22 +529,23 @@ function AdminPage() {
             </div>
 
             {loadingData ? (
-              <div className="rounded-2xl border border-[rgba(140,100,74,0.16)] bg-[rgba(255,255,255,0.64)] p-8 text-center">
-                <p className="inline-flex items-center gap-2 text-[var(--earth)]"><Loader2 size={18} className="animate-spin" /> Carregando convidadas...</p>
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : convidadas.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.32)] bg-[rgba(255,255,255,0.54)] p-8 text-center text-[var(--earth)]">
-                Nenhuma convidada cadastrada ainda.
+              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+                <p className="text-sm text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {convidadas.map((item) => (
-                  <article key={item.id} className="rounded-2xl border border-[rgba(140,100,74,0.2)] bg-[rgba(255,252,247,0.9)] p-4 shadow-[0_6px_18px_rgba(84,52,38,0.08)] transition hover:-translate-y-0.5">
+                  <article key={item.id} className="rounded-2xl border border-border bg-card p-5 elegant-shadow">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xl text-[var(--ink)]">{item.nome}</p>
-                        <p className="text-sm text-[var(--earth)]">{formatWhatsapp(item.whatsapp)}</p>
+                        <p className="font-serif text-2xl text-wine">{item.nome}</p>
+                        <p className="text-sm text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
                       </div>
+
                       <span className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] ${
                         item.status === 'confirmada'
                           ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
