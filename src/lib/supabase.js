@@ -13,3 +13,14 @@ export const supabase = createClient(
   supabaseUrl ?? 'https://replace-me.supabase.co',
   supabaseAnonKey ?? 'replace-me',
 )
+
+export function setInviteTokenHeader(token) {
+  if (!supabase?.rest?.headers) return
+
+  if (token) {
+    supabase.rest.headers['x-convite-token'] = token
+    return
+  }
+
+  delete supabase.rest.headers['x-convite-token']
+}

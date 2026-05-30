@@ -9,7 +9,8 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/confirmacao" element={<ConfirmacaoPage />} />
+      <Route path="/confirmar" element={<ConfirmacaoPage />} />
+      <Route path="/confirmacao" element={<Navigate to="/confirmar" replace />} />
       <Route
         path="/admin"
         element={
@@ -18,7 +19,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/confirmacao" replace />} />
+      <Route path="*" element={<Navigate to="/confirmar" replace />} />
     </Routes>
   )
 }
