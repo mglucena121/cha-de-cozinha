@@ -1,13 +1,44 @@
 @import "tailwindcss";
 
 :root {
-	--bg-cream: #f8f1e7;
-	--bg-beige: #ede0d1;
+	/* Autumn romantic palette */
+	--background: oklch(0.97 0.012 75);          /* cream */
+	--foreground: oklch(0.28 0.04 35);           /* deep warm brown */
+
+	--card: oklch(0.985 0.008 80);
+	--card-foreground: oklch(0.28 0.04 35);
+
+	--popover: oklch(0.985 0.008 80);
+	--popover-foreground: oklch(0.28 0.04 35);
+
+	--primary: oklch(0.42 0.08 30);              /* soft wine / dark rust */
+	--primary-foreground: oklch(0.97 0.012 75);
+
+	--secondary: oklch(0.92 0.025 75);           /* warm beige */
+	--secondary-foreground: oklch(0.32 0.05 35);
+
+	--muted: oklch(0.93 0.018 75);
+	--muted-foreground: oklch(0.5 0.03 40);
+
+	--accent: oklch(0.78 0.11 55);               /* rust accent */
+	--accent-foreground: oklch(0.98 0.012 75);
+
+	--destructive: oklch(0.55 0.18 27);
+	--destructive-foreground: oklch(0.98 0 0);
+
+	--border: oklch(0.88 0.02 70);
+	--input: oklch(0.9 0.02 70);
+	--ring: oklch(0.65 0.12 55);
+
+	--gold: oklch(0.78 0.105 80);                /* soft gold */
+	--wine: oklch(0.38 0.09 20);                 /* gentle wine */
+	--rust: oklch(0.6 0.14 45);                  /* warm rust */
+
+	/* Legacy hex vars for compatibility */
+	--bg-cream: #f5e6d3;
+	--bg-beige: #f0dcc8;
 	--earth: #8c644a;
 	--earth-soft: #b08968;
-	--rust: #b35a3c;
-	--wine: #7f3d4d;
-	--gold: #b2874d;
 	--ink: #42291f;
 }
 
@@ -23,12 +54,12 @@ body,
 
 body {
 	margin: 0;
-	color: var(--ink);
+	color: var(--foreground);
 	font-family: "Cormorant Garamond", "Times New Roman", serif;
 	background:
-		radial-gradient(circle at 10% 10%, rgba(178, 135, 77, 0.2), transparent 36%),
-		radial-gradient(circle at 90% 0%, rgba(127, 61, 77, 0.16), transparent 42%),
-		linear-gradient(140deg, var(--bg-cream) 0%, var(--bg-beige) 62%, #e7d4be 100%);
+		radial-gradient(circle at 10% 10%, rgba(from var(--gold) r g b / 0.08), transparent 36%),
+		radial-gradient(circle at 90% 0%, rgba(from var(--wine) r g b / 0.06), transparent 42%),
+		linear-gradient(140deg, var(--background) 0%, var(--secondary) 62%, oklch(0.87 0.015 65) 100%);
 }
 
 h1,
@@ -113,5 +144,75 @@ h6 {
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@layer utilities {
+	.bg-card {
+		background-color: var(--card);
+	}
+
+	.bg-background {
+		background-color: var(--background);
+	}
+
+	.bg-primary {
+		background-color: var(--primary);
+	}
+
+	.text-wine {
+		color: var(--wine);
+	}
+
+	.text-gold {
+		color: var(--gold);
+	}
+
+	.text-rust {
+		color: var(--rust);
+	}
+
+	.text-muted-foreground {
+		color: var(--muted-foreground);
+	}
+
+	.text-primary-foreground {
+		color: var(--primary-foreground);
+	}
+
+	.border-border {
+		border-color: var(--border);
+	}
+
+	.border-input {
+		border-color: var(--input);
+	}
+
+	.bg-input {
+		background-color: var(--input);
+	}
+
+	.elegant-shadow {
+		box-shadow: 0 10px 30px rgba(from var(--foreground) r g b / 0.12);
+	}
+
+	.gold-divider {
+		height: 1px;
+		background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+	}
+
+	.animate-fade-up {
+		animation: fade-up 0.5s ease-out;
+	}
+
+	@keyframes fade-up {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 }
