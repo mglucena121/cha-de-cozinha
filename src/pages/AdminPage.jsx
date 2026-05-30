@@ -354,23 +354,14 @@ function AdminPage() {
           <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="font-serif text-4xl text-wine">Lista de Presentes</h1>
+                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Presentes</h1>
                 <div className="gold-divider mt-3 w-28" />
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">
                   {presentes.length} presente{presentes.length !== 1 && 's'} • {confirmacoes.length} confirmado{confirmacoes.length !== 1 && 's'}
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => loadData()}
-                  className="rounded-full border border-border bg-card px-3 py-3 text-muted-foreground transition hover:text-wine"
-                  aria-label="Atualizar dados"
-                >
-                  <RefreshCw size={16} />
-                </button>
-
                 <button type="button" onClick={() => setIsModalOpen(true)} className="font-sans inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground elegant-shadow transition hover:opacity-90">
                   <Plus size={18} />
                   Adicionar presente
@@ -384,7 +375,7 @@ function AdminPage() {
               </div>
             ) : presentes.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
-                <p className="text-sm text-muted-foreground">Nenhum presente cadastrado ainda.</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">Nenhum presente cadastrado ainda.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -402,7 +393,7 @@ function AdminPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-serif text-2xl text-wine">{item.nome}</p>
+                        <p className="truncate font-serif text-xl leading-snug font-normal text-wine">{item.nome}</p>
                       </div>
 
                       <button
@@ -418,7 +409,7 @@ function AdminPage() {
 
                     <div className="mt-4 flex items-center gap-2">
                       <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-gold'}`} />
-                      <span className={`text-[10px] uppercase tracking-[0.2em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
+                      <span className={`font-sans text-[11px] font-medium uppercase tracking-[0.14em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
                         {isConfirmed ? 'Confirmado' : 'Aguardando'}
                       </span>
                     </div>
@@ -432,9 +423,9 @@ function AdminPage() {
           <section className="animate-fade-up">
             <div className="mb-6 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
               <div>
-                <h1 className="font-serif text-4xl text-wine">Confirmacoes</h1>
+                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Confirmações</h1>
                 <div className="gold-divider mt-3 w-32" />
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">
                   {confirmacoes.length} pessoa{confirmacoes.length !== 1 && 's'} confirmaram presenca.
                 </p>
               </div>
@@ -453,18 +444,18 @@ function AdminPage() {
 
             <div className="mb-5 grid gap-3 sm:grid-cols-3">
               <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-gold">Presentes ativos</p>
-                <p className="mt-1 text-3xl text-[var(--ink)]">{presentes.length}</p>
+                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Presentes ativos</p>
+                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{presentes.length}</p>
               </article>
 
               <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-gold">Confirmacoes</p>
-                <p className="mt-1 text-3xl text-[var(--ink)]">{confirmacoes.length}</p>
+                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Confirmacoes</p>
+                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{confirmacoes.length}</p>
               </article>
 
               <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-gold">Resultado busca</p>
-                <p className="mt-1 text-3xl text-[var(--ink)]">{filteredConfirmacoes.length}</p>
+                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Resultado busca</p>
+                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{filteredConfirmacoes.length}</p>
               </article>
             </div>
 
@@ -474,11 +465,11 @@ function AdminPage() {
               </div>
             ) : confirmacoes.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
-                <p className="text-sm text-muted-foreground">Ainda nao ha confirmacoes.</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">Ainda nao ha confirmacoes.</p>
               </div>
             ) : filteredConfirmacoes.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
-                <p className="text-sm text-muted-foreground">Nenhum resultado para essa busca.</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -493,8 +484,8 @@ function AdminPage() {
                       </div>
 
                       <div className="min-w-0">
-                        <p className="truncate font-serif text-lg text-wine">{item.primeiro_nome}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="truncate font-serif text-base leading-snug font-normal text-wine">{item.primeiro_nome}</p>
+                        <p className="text-sm text-muted-foreground">
                           {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
@@ -515,9 +506,9 @@ function AdminPage() {
           <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
               <article className="rounded-2xl border border-border bg-card p-4">
-                <h2 className="font-serif text-3xl text-wine">Lista de Convidados</h2>
-                <p className="mt-1 text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
-                <p className="mt-3 text-sm text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
+                <h2 className="font-sans text-[1.5rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
+                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
+                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
               </article>
 
               <form onSubmit={handleAddGuest} className="rounded-2xl border border-border bg-card p-4">
@@ -552,7 +543,7 @@ function AdminPage() {
               </div>
             ) : convidadas.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
-                <p className="text-sm text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
@@ -560,8 +551,8 @@ function AdminPage() {
                   <article key={item.id} className="rounded-2xl border border-border bg-card p-5 elegant-shadow">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-serif text-2xl text-wine">{item.nome}</p>
-                        <p className="text-sm text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
+                        <p className="font-serif text-xl leading-snug font-normal text-wine">{item.nome}</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
                       </div>
 
                       <span className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] ${
