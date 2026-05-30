@@ -504,38 +504,37 @@ function AdminPage() {
           </section>
         ) : (
           <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
-            <div className="mb-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-              <article className="rounded-2xl border border-border bg-card p-4">
-                <h2 className="font-sans text-[1.5rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
-                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
-                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
-              </article>
-
-              <form onSubmit={handleAddGuest} className="rounded-2xl border border-border bg-card p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-gold">Nova convidada</p>
-                <div className="mt-3 grid gap-3">
-                  <input
-                    type="text"
-                    value={guestName}
-                    onChange={(event) => setGuestName(event.target.value)}
-                    placeholder="Nome completo"
-                    className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
-                  />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={guestWhatsapp}
-                    onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
-                    placeholder="WhatsApp com DDD (somente numeros)"
-                    className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
-                  />
-                  <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2">
-                    {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                    {savingGuest ? 'Salvando...' : 'Cadastrar convidada'}
-                  </button>
-                </div>
-              </form>
+            <div className="mb-6">
+              <h2 className="font-sans text-[1.5rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
+              <div className="gold-divider mt-3 w-32" />
+              <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
+              <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
             </div>
+
+            <form onSubmit={handleAddGuest} className="mb-6 rounded-2xl border border-border bg-card p-4">
+              <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Nova convidada</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-[1.3fr_1fr_auto] md:items-center">
+                <input
+                  type="text"
+                  value={guestName}
+                  onChange={(event) => setGuestName(event.target.value)}
+                  placeholder="Nome completo"
+                  className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={guestWhatsapp}
+                  onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
+                  placeholder="WhatsApp com DDD (somente numeros)"
+                  className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                />
+                <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2 md:justify-self-end">
+                  {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                  {savingGuest ? 'Salvando...' : 'Cadastrar convidada'}
+                </button>
+              </div>
+            </form>
 
             {loadingData ? (
               <div className="flex justify-center py-20">
@@ -568,7 +567,7 @@ function AdminPage() {
                       <button
                         type="button"
                         onClick={() => handleSendInvite(item)}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(60,138,86,0.3)] px-4 py-2.5 text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.1)]"
+                        className="btn-success font-sans inline-flex items-center justify-center gap-2"
                       >
                         <MessageCircle size={16} />
                         Enviar convite
@@ -578,7 +577,7 @@ function AdminPage() {
                         type="button"
                         onClick={() => handleDeleteGuest(item.id)}
                         disabled={deletingGuestId === item.id}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(179,90,60,0.32)] px-4 py-2.5 text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.08)] disabled:cursor-not-allowed"
+                        className="btn-danger font-sans inline-flex items-center justify-center gap-2"
                       >
                         {deletingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                         Excluir

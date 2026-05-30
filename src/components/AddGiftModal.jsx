@@ -39,7 +39,7 @@ function AddGiftModal({ isOpen, giftName, onGiftNameChange, onClose, onSubmit, l
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-[rgba(140,100,74,0.3)] px-5 py-2.5 text-[var(--earth)] transition hover:bg-[rgba(255,255,255,0.65)]"
+              className="btn-secondary font-sans"
             >
               Cancelar
             </button>

@@ -132,6 +132,59 @@ h6 {
 	cursor: not-allowed;
 }
 
+.btn-secondary {
+	background-color: transparent;
+	color: var(--foreground);
+	border-radius: 1.5rem;
+	border: 1px solid rgba(from var(--border) r g b / 0.85);
+	padding: 0.75rem 1.25rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-secondary:hover {
+	background-color: rgba(255, 255, 255, 0.55);
+	border-color: rgba(from var(--gold) r g b / 0.45);
+}
+
+.btn-success {
+	background-color: transparent;
+	color: rgb(52, 112, 72);
+	border-radius: 1.5rem;
+	border: 1px solid rgba(60, 138, 86, 0.3);
+	padding: 0.75rem 1.25rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-success:hover {
+	background-color: rgba(60, 138, 86, 0.1);
+}
+
+.btn-danger {
+	background-color: transparent;
+	color: var(--rust);
+	border-radius: 1.5rem;
+	border: 1px solid rgba(179, 90, 60, 0.32);
+	padding: 0.75rem 1.25rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-danger:hover {
+	background-color: rgba(179, 90, 60, 0.08);
+}
+
+.btn-secondary:disabled,
+.btn-success:disabled,
+.btn-danger:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
 .fade-rise {
 	animation: fade-rise 520ms ease-out both;
 }
