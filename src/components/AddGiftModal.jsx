@@ -44,7 +44,7 @@ function AddGiftModal({ isOpen, giftName, onGiftNameChange, onClose, onSubmit, l
               Cancelar
             </button>
 
-            <button type="submit" disabled={loading} className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5">
+            <button type="submit" disabled={loading} className="btn-primary inline-flex items-center justify-center gap-2">
               {loading ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} />}
               {loading ? 'Salvando...' : 'Salvar presente'}
             </button>

@@ -362,7 +362,7 @@ function AdminPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setIsModalOpen(true)} className="font-sans inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground elegant-shadow transition hover:opacity-90">
+                <button type="button" onClick={() => setIsModalOpen(true)} className="btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm">
                   <Plus size={18} />
                   Adicionar presente
                 </button>
@@ -529,7 +529,7 @@ function AdminPage() {
                     placeholder="WhatsApp com DDD (somente numeros)"
                     className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                   />
-                  <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-3 disabled:opacity-70">
+                  <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2">
                     {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
                     {savingGuest ? 'Salvando...' : 'Cadastrar convidada'}
                   </button>
