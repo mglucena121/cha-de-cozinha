@@ -11,6 +11,7 @@ function ConfirmacaoPage() {
   const [convidada, setConvidada] = useState(null)
   const [selectedGiftId, setSelectedGiftId] = useState('')
   const [presentes, setPresentes] = useState([])
+  const [reservedByGiftId, setReservedByGiftId] = useState({})
   const [loadingPage, setLoadingPage] = useState(true)
   const [confirming, setConfirming] = useState(false)
 
@@ -27,9 +28,18 @@ function ConfirmacaoPage() {
       setLoadingPage(true)
     }
 
-    const [{ data: convidadaData, error: convidadaError }, { data: giftsData, error: giftsError }] = await Promise.all([
+    const [
+      { data: convidadaData, error: convidadaError },
+      { data: giftsData, error: giftsError },
+      { data: reservedData, error: reservedError },
+    ] = await Promise.all([
       supabase.from('convidadas').select('id, nome, status, presente_id, token').eq('token', token).single(),
       supabase.from('presentes').select('id, nome, created_at').order('created_at', { ascending: true }),
+      supabase
+        .from('convidadas')
+        .select('token, nome, presente_id, status')
+        .eq('status', 'confirmada')
+        .not('presente_id', 'is', null),
     ])
 
     if (convidadaError) {
@@ -54,10 +64,23 @@ function ConfirmacaoPage() {
       return
     }
 
+    if (reservedError) {
+      toast.error(`Erro ao carregar status dos presentes: ${reservedError.message}`)
+    }
+
     const giftsList = giftsData ?? []
+    const reservations = reservedData ?? []
+    const nextReservedByGiftId = {}
+
+    reservations.forEach((item) => {
+      if (item.token === token) return
+      if (!item.presente_id) return
+      nextReservedByGiftId[item.presente_id] = item.nome || 'Convidada'
+    })
 
     setConvidada(convidadaData)
     setPresentes(giftsList)
+    setReservedByGiftId(nextReservedByGiftId)
     setSelectedGiftId((currentSelectedGiftId) => {
       if (currentSelectedGiftId && giftsList.some((item) => item.id === currentSelectedGiftId)) {
         return currentSelectedGiftId
@@ -105,6 +128,11 @@ function ConfirmacaoPage() {
 
     if (!selectedGiftId) {
       toast.error('Selecione um presente disponivel.')
+      return
+    }
+
+    if (reservedByGiftId[selectedGiftId]) {
+      toast.error('Este presente ja foi reservado. Escolha outro item.')
       return
     }
 
@@ -160,55 +188,91 @@ function ConfirmacaoPage() {
   return (
     <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
       <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
-        <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Cha de Cozinha</p>
-        <h1 className="mt-1 text-4xl text-[var(--ink)]">Confirme sua Presenca</h1>
+        <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
+        <h1 className="mt-1 text-4xl text-[var(--ink)]">Confirme sua Presença</h1>
         <p className="mt-3 text-[var(--earth)]">
-          Ola, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! Escolha um presente disponivel para concluir sua confirmacao.
+          Olá, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! Escolha um presente disponível para concluir sua confirmação.
         </p>
 
-        <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] ${
+        <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-medium ${
           convidada.status === 'confirmada'
             ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
             : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
         }`}>
-          {convidada.status === 'confirmada' ? 'Status atual: confirmada' : 'Status atual: pendente'}
+          {convidada.status === 'confirmada' ? 'Status: Confirmado' : 'Status: Pendente'}
         </p>
 
         <form className="mt-8 grid gap-4" onSubmit={handleConfirm}>
-          <label className="block">
-            <span className="mb-2 inline-flex items-center gap-2 text-sm text-[var(--earth)]">
+          <div>
+            <span className="mb-2 inline-flex items-center gap-2 font-sans text-sm text-[var(--earth)]">
               <Gift size={16} />
-              Presente disponivel
+              Presentes disponíveis
             </span>
-            <select
-              value={selectedGiftId}
-              onChange={(event) => setSelectedGiftId(event.target.value)}
-              disabled={presentes.length === 0}
-              className="w-full rounded-2xl border border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.88)] px-4 py-3 text-[var(--ink)] outline-none transition focus:border-[var(--rust)] focus:ring-2 focus:ring-[rgba(179,90,60,0.2)] disabled:cursor-not-allowed disabled:opacity-80"
-            >
-              <option value="">
-                {presentes.length ? 'Selecione um presente' : 'Nenhum presente disponivel'}
-              </option>
-              {presentes.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
-                </option>
-              ))}
-            </select>
-          </label>
 
-          <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.28)] bg-[rgba(255,255,255,0.55)] px-4 py-3 text-sm text-[var(--earth)]">
-            Se outro convite escolher o mesmo presente antes, voce vera uma mensagem para selecionar outro item.
+            {presentes.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.24)] bg-[rgba(255,252,247,0.82)] px-4 py-4 text-sm text-[var(--earth)]">
+                Nenhum presente disponivel no momento.
+              </div>
+            ) : (
+              <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:max-h-80">
+                {presentes.map((item) => {
+                  const isSelected = selectedGiftId === item.id
+                  const isReserved = Boolean(reservedByGiftId[item.id])
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={isReserved}
+                      onClick={() => setSelectedGiftId(item.id)}
+                      className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                        isReserved
+                          ? 'cursor-not-allowed border-[rgba(140,100,74,0.22)] bg-[rgba(207,198,186,0.38)] text-[rgba(95,77,66,0.78)]'
+                          : isSelected
+                            ? 'border-[rgba(60,138,86,0.45)] bg-[rgba(60,138,86,0.12)] text-[var(--ink)]'
+                            : 'border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.9)] text-[var(--ink)] hover:border-[rgba(179,90,60,0.42)] hover:bg-[rgba(255,255,255,0.96)]'
+                      }`}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`relative inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+                              isReserved
+                                ? 'border-[rgba(140,100,74,0.35)]'
+                                : isSelected
+                                  ? 'border-[rgb(52,112,72)]'
+                                  : 'border-[rgba(140,100,74,0.45)]'
+                            }`}
+                          >
+                            {isSelected && !isReserved ? <span className="h-2 w-2 rounded-full bg-[rgb(52,112,72)]" /> : null}
+                          </span>
+                          <span className="font-sans text-sm">{item.nome}</span>
+                        </div>
+
+                        {isReserved ? (
+                          <span className="rounded-full bg-[rgba(140,100,74,0.2)] px-2.5 py-1 font-sans text-xs uppercase tracking-[0.08em] text-[rgba(95,77,66,0.9)]">
+                            Reservado
+                          </span>
+                        ) : null}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          <button
-            type="submit"
-            disabled={confirming || presentes.length === 0}
-            className="btn-primary mt-2 inline-flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {confirming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            {confirming ? 'Confirmando...' : 'Confirmar Presenca'}
-          </button>
+          <div className="mt-2 border-t border-[rgba(140,100,74,0.18)] pt-4">
+            <button
+              type="submit"
+              disabled={confirming || presentes.length === 0 || !selectedGiftId || Boolean(reservedByGiftId[selectedGiftId])}
+              className="btn-primary font-sans inline-flex w-full items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {confirming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              {confirming ? 'Confirmando...' : 'Confirmar'}
+            </button>
+          </div>
         </form>
       </section>
     </main>
