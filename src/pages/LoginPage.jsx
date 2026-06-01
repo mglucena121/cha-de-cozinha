@@ -62,20 +62,20 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5 py-8 md:py-12">
-      <div className="w-full max-w-lg animate-fade-up">
-        <div className="bg-card border border-border rounded-3xl elegant-shadow p-7 sm:p-8 md:p-10 flex flex-col">
-          <div className="text-center mb-8">
+    <div className="min-h-[100dvh] overflow-hidden flex items-center justify-center px-4 py-4 sm:px-5 sm:py-6 md:py-12">
+      <div className="w-full max-w-md animate-fade-up">
+        <div className="bg-card border border-border rounded-3xl elegant-shadow px-5 py-6 sm:px-7 sm:py-7 md:p-9 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-none">
+          <div className="text-center mb-6 sm:mb-8">
             <div className="inline-flex items-center gap-2 text-gold mb-4">
               <Sparkles className="h-4 w-4" />
               <span className="font-serif text-xs uppercase tracking-[0.3em] text-wine">área da noiva</span>
               <Sparkles className="h-4 w-4" />
             </div>
-            <h1 className="text-[2.1rem] md:text-4xl font-serif text-wine leading-tight">
+            <h1 className="text-[1.9rem] sm:text-[2.1rem] md:text-4xl font-serif text-wine leading-tight">
               {mode === 'signin' ? 'Bem-vinda' : 'Criar conta'}
             </h1>
-            <div className="gold-divider my-5 mx-auto w-24" />
-            <p className="font-sans text-base md:text-lg text-[color:var(--foreground)] max-w-sm mx-auto leading-relaxed opacity-80">
+            <div className="gold-divider my-4 sm:my-5 mx-auto w-20 sm:w-24" />
+            <p className="font-sans text-sm sm:text-base md:text-lg text-[color:var(--foreground)] max-w-sm mx-auto leading-relaxed opacity-80">
               {mode === 'signin'
                 ? 'Entre para gerenciar sua lista de presentes.'
                 : 'Crie sua conta de administradora.'}
@@ -83,9 +83,9 @@ function LoginPage() {
           </div>
 
           <div className="flex-1 flex flex-col justify-center">
-            <form onSubmit={handleSubmit} className="space-y-6 md:space-y-7">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 md:space-y-7">
               <div>
-                <label className="font-sans text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)] opacity-75 mb-2 block">
+                <label className="font-sans text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)] opacity-75 mb-1.5 sm:mb-2 block">
                   Email
                 </label>
                 <div className="relative">
@@ -95,14 +95,14 @@ function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="font-sans w-full pl-11 pr-4 py-4 text-base md:text-lg rounded-3xl bg-background border border-input focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/60 placeholder:text-[color:var(--muted-foreground)] placeholder:opacity-90 transition"
+                    className="font-sans w-full pl-11 pr-4 py-3.5 text-base md:text-lg rounded-3xl bg-background border border-input focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/60 placeholder:text-[color:var(--muted-foreground)] placeholder:opacity-90 transition"
                     placeholder="voce@email.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-sans text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)] opacity-75 mb-2 block">
+                <label className="font-sans text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)] opacity-75 mb-1.5 sm:mb-2 block">
                   Senha
                 </label>
                 <div className="relative">
@@ -113,7 +113,7 @@ function LoginPage() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="font-sans w-full pl-11 pr-4 py-4 text-base md:text-lg rounded-3xl bg-background border border-input focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/60 placeholder:text-[color:var(--muted-foreground)] placeholder:opacity-90 transition"
+                    className="font-sans w-full pl-11 pr-4 py-3.5 text-base md:text-lg rounded-3xl bg-background border border-input focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold/60 placeholder:text-[color:var(--muted-foreground)] placeholder:opacity-90 transition"
                     placeholder="••••••••"
                   />
                 </div>
