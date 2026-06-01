@@ -565,11 +565,11 @@ function AdminPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca.</p>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredConfirmacoes.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40 sm:p-5"
+                    className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40 sm:p-5"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-secondary font-serif text-wine">
