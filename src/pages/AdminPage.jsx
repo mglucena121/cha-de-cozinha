@@ -519,43 +519,37 @@ function AdminPage() {
             )}
           </section>
         ) : activeSection === 'confirmacoes' ? (
-          <section className="animate-fade-up">
-            <div className="mb-6 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Confirmações</h1>
                 <div className="gold-divider mt-3 w-32" />
-                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">
-                  {confirmacoes.length} pessoa{confirmacoes.length !== 1 && 's'} confirmaram presenca.
-                </p>
+                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{presentes.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">presentes</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmacoes.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmados</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{filteredConfirmacoes.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">resultado</p>
+                  </article>
+                </div>
               </div>
 
-              <label className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5">
+              <label className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 sm:min-w-[240px]">
                 <Search size={16} className="text-muted-foreground" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Buscar nome ou presente"
-                  className="w-full bg-transparent text-[var(--ink)] outline-none placeholder:text-muted-foreground md:min-w-[240px]"
+                  className="w-full bg-transparent text-[var(--ink)] outline-none placeholder:text-muted-foreground"
                 />
               </label>
-            </div>
-
-            <div className="mb-5 grid gap-3 sm:grid-cols-3">
-              <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Presentes ativos</p>
-                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{presentes.length}</p>
-              </article>
-
-              <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Confirmacoes</p>
-                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{confirmacoes.length}</p>
-              </article>
-
-              <article className="rounded-2xl border border-border bg-card p-4">
-                <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Resultado busca</p>
-                <p className="mt-1 font-sans text-3xl text-[var(--ink)]">{filteredConfirmacoes.length}</p>
-              </article>
             </div>
 
             {loadingData ? (
@@ -571,11 +565,11 @@ function AdminPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca.</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredConfirmacoes.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-border bg-card p-5 elegant-shadow transition hover:border-gold/40"
+                    className="rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40 sm:p-5"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-secondary font-serif text-wine">
