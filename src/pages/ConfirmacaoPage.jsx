@@ -82,6 +82,9 @@ function ConfirmacaoPage() {
     setPresentes(giftsList)
     setReservedByGiftId(nextReservedByGiftId)
     setSelectedGiftId((currentSelectedGiftId) => {
+      if (convidadaData.status === 'confirmada' && convidadaData.presente_id) {
+        return convidadaData.presente_id
+      }
       if (currentSelectedGiftId && giftsList.some((item) => item.id === currentSelectedGiftId)) {
         return currentSelectedGiftId
       }
@@ -131,6 +134,11 @@ function ConfirmacaoPage() {
       return
     }
 
+    if (convidada.status === 'confirmada' && convidada.presente_id) {
+      toast.success('Sua presenca ja esta confirmada.')
+      return
+    }
+
     if (reservedByGiftId[selectedGiftId]) {
       toast.error('Este presente ja foi reservado. Escolha outro item.')
       return
@@ -159,6 +167,9 @@ function ConfirmacaoPage() {
     toast.success('Presenca confirmada com sucesso!')
     loadInviteData({ silent: true })
   }
+
+  const isConfirmed = convidada?.status === 'confirmada' && Boolean(convidada?.presente_id)
+  const confirmedGift = presentes.find((item) => item.id === convidada?.presente_id)
 
   if (loadingPage) {
     return (
@@ -189,12 +200,12 @@ function ConfirmacaoPage() {
     <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
       <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
         <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
-        <h1 className="mt-1 text-4xl text-[var(--ink)]">Confirme sua Presença</h1>
+        <h1 className="mt-1 text-4xl text-[var(--ink)]">{isConfirmed ? 'Presenca Confirmada' : 'Confirme sua Presenca'}</h1>
         <p className="mt-3 text-[var(--earth)]">
-          Olá, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! Escolha um presente disponível para concluir sua confirmação.
+          Ola, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! {isConfirmed ? 'Sua presenca ja foi confirmada.' : 'Escolha um presente disponivel para concluir sua confirmacao.'}
         </p>
 
-        <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-medium ${
+        <p className={`mt-4 inline-flex rounded-full px-3 py-1 font-sans text-sm font-medium ${
           convidada.status === 'confirmada'
             ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
             : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
@@ -202,78 +213,102 @@ function ConfirmacaoPage() {
           {convidada.status === 'confirmada' ? 'Status: Confirmado' : 'Status: Pendente'}
         </p>
 
-        <form className="mt-8 grid gap-4" onSubmit={handleConfirm}>
-          <div>
-            <span className="mb-2 inline-flex items-center gap-2 font-sans text-sm text-[var(--earth)]">
-              <Gift size={16} />
-              Presentes disponíveis
-            </span>
+        {isConfirmed ? (
+          <section className="mt-8 grid gap-4">
+            <div className="font-sans text-sm text-[var(--earth)]">
+              Obrigada por confirmar sua presenca. Te esperamos no cha de cozinha!
+            </div>
 
-            {presentes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.24)] bg-[rgba(255,252,247,0.82)] px-4 py-4 text-sm text-[var(--earth)]">
-                Nenhum presente disponivel no momento.
+            <div>
+              <span className="mb-2 inline-flex items-center gap-2 font-sans text-sm text-[var(--earth)]">
+                <Gift size={16} />
+                Presente selecionado
+              </span>
+
+              <div className="w-full rounded-2xl border border-[rgba(60,138,86,0.42)] bg-[rgba(60,138,86,0.12)] px-4 py-3 text-left text-[var(--ink)]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="font-sans text-sm sm:text-base">{confirmedGift?.nome ?? 'Presente selecionado'}</span>
+                  <span className="rounded-full bg-[rgba(60,138,86,0.18)] px-2.5 py-1 font-sans text-xs uppercase tracking-[0.08em] text-[rgb(52,112,72)]">
+                    Confirmado
+                  </span>
+                </div>
               </div>
-            ) : (
-              <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:max-h-80">
-                {presentes.map((item) => {
-                  const isSelected = selectedGiftId === item.id
-                  const isReserved = Boolean(reservedByGiftId[item.id])
+            </div>
+          </section>
+        ) : (
+          <form className="mt-8 grid gap-4" onSubmit={handleConfirm}>
+            <div>
+              <span className="mb-2 inline-flex items-center gap-2 font-sans text-sm text-[var(--earth)]">
+                <Gift size={16} />
+                Presentes disponiveis
+              </span>
 
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      disabled={isReserved}
-                      onClick={() => setSelectedGiftId(item.id)}
-                      className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                        isReserved
-                          ? 'cursor-not-allowed border-[rgba(140,100,74,0.22)] bg-[rgba(207,198,186,0.38)] text-[rgba(95,77,66,0.78)]'
-                          : isSelected
-                            ? 'border-[rgba(60,138,86,0.45)] bg-[rgba(60,138,86,0.12)] text-[var(--ink)]'
-                            : 'border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.9)] text-[var(--ink)] hover:border-[rgba(179,90,60,0.42)] hover:bg-[rgba(255,255,255,0.96)]'
-                      }`}
-                      aria-pressed={isSelected}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`relative inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-                              isReserved
-                                ? 'border-[rgba(140,100,74,0.35)]'
-                                : isSelected
-                                  ? 'border-[rgb(52,112,72)]'
-                                  : 'border-[rgba(140,100,74,0.45)]'
-                            }`}
-                          >
-                            {isSelected && !isReserved ? <span className="h-2 w-2 rounded-full bg-[rgb(52,112,72)]" /> : null}
-                          </span>
-                          <span className="font-sans text-sm">{item.nome}</span>
+              {presentes.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.24)] bg-[rgba(255,252,247,0.82)] px-4 py-4 text-sm text-[var(--earth)]">
+                  Nenhum presente disponivel no momento.
+                </div>
+              ) : (
+                <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:max-h-80">
+                  {presentes.map((item) => {
+                    const isSelected = selectedGiftId === item.id
+                    const isReserved = Boolean(reservedByGiftId[item.id])
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        disabled={isReserved}
+                        onClick={() => setSelectedGiftId(item.id)}
+                        className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                          isReserved
+                            ? 'cursor-not-allowed border-[rgba(140,100,74,0.22)] bg-[rgba(207,198,186,0.38)] text-[rgba(95,77,66,0.78)]'
+                            : isSelected
+                              ? 'border-[rgba(60,138,86,0.45)] bg-[rgba(60,138,86,0.12)] text-[var(--ink)]'
+                              : 'border-[rgba(140,100,74,0.22)] bg-[rgba(255,252,247,0.9)] text-[var(--ink)] hover:border-[rgba(179,90,60,0.42)] hover:bg-[rgba(255,255,255,0.96)]'
+                        }`}
+                        aria-pressed={isSelected}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`relative inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+                                isReserved
+                                  ? 'border-[rgba(140,100,74,0.35)]'
+                                  : isSelected
+                                    ? 'border-[rgb(52,112,72)]'
+                                    : 'border-[rgba(140,100,74,0.45)]'
+                              }`}
+                            >
+                              {isSelected && !isReserved ? <span className="h-2 w-2 rounded-full bg-[rgb(52,112,72)]" /> : null}
+                            </span>
+                            <span className="font-sans text-sm">{item.nome}</span>
+                          </div>
+
+                          {isReserved ? (
+                            <span className="rounded-full bg-[rgba(140,100,74,0.2)] px-2.5 py-1 font-sans text-xs uppercase tracking-[0.08em] text-[rgba(95,77,66,0.9)]">
+                              Reservado
+                            </span>
+                          ) : null}
                         </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
-                        {isReserved ? (
-                          <span className="rounded-full bg-[rgba(140,100,74,0.2)] px-2.5 py-1 font-sans text-xs uppercase tracking-[0.08em] text-[rgba(95,77,66,0.9)]">
-                            Reservado
-                          </span>
-                        ) : null}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-2 border-t border-[rgba(140,100,74,0.18)] pt-4">
-            <button
-              type="submit"
-              disabled={confirming || presentes.length === 0 || !selectedGiftId || Boolean(reservedByGiftId[selectedGiftId])}
-              className="btn-primary font-sans inline-flex w-full items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {confirming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              {confirming ? 'Confirmando...' : 'Confirmar'}
-            </button>
-          </div>
-        </form>
+            <div className="mt-2 border-t border-[rgba(140,100,74,0.18)] pt-4">
+              <button
+                type="submit"
+                disabled={confirming || presentes.length === 0 || !selectedGiftId || Boolean(reservedByGiftId[selectedGiftId])}
+                className="btn-primary font-sans inline-flex w-full items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {confirming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                {confirming ? 'Confirmando...' : 'Confirmar'}
+              </button>
+            </div>
+          </form>
+        )}
       </section>
     </main>
   )
