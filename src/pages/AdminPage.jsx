@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, RefreshCw, Search, Trash2, Users, MessageCircle } from 'lucide-react'
+import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Search, Trash2, Users, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -22,6 +22,9 @@ function AdminPage() {
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const actionButtonClass =
+    'btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed'
 
   const confirmacaoBaseUrl = useMemo(() => {
     if (typeof window === 'undefined') return '/confirmar'
@@ -50,6 +53,11 @@ function AdminPage() {
         .map((item) => item.presente_id),
     )
   }, [convidadas])
+
+  const pendingGiftCount = useMemo(
+    () => Math.max(presentes.length - confirmedGiftIds.size, 0),
+    [presentes.length, confirmedGiftIds],
+  )
 
   const loadData = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
@@ -299,8 +307,8 @@ function AdminPage() {
   }, [])
 
   return (
-    <main className="app-shell min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
+    <main className="app-shell flex h-[100dvh] flex-col overflow-hidden">
+      <header className="fixed left-0 right-0 top-0 z-40 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2">
             <Gift size={14} className="text-gold" />
@@ -423,20 +431,37 @@ function AdminPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <div className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
+        activeSection === 'presentes' ? 'overflow-hidden' : 'overflow-y-auto'
+      }`}>
         {activeSection === 'presentes' ? (
-          <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Presentes</h1>
                 <div className="gold-divider mt-3 w-28" />
-                <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">
-                  {presentes.length} presente{presentes.length !== 1 && 's'} • {confirmacoes.length} confirmado{confirmacoes.length !== 1 && 's'}
-                </p>
+                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{presentes.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">presentes</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmacoes.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmados</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{pendingGiftCount}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">pendentes</p>
+                  </article>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setIsModalOpen(true)} className="btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className={`${actionButtonClass} w-full sm:w-auto`}
+                >
                   <Plus size={18} />
                   Adicionar presente
                 </button>
@@ -452,14 +477,14 @@ function AdminPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhum presente cadastrado ainda.</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {presentes.map((item) => {
                   const isConfirmed = confirmedGiftIds.has(item.id)
 
                   return (
                   <article
                     key={item.id}
-                    className={`group rounded-2xl border bg-card p-5 elegant-shadow transition ${
+                    className={`group rounded-2xl border bg-card p-4 elegant-shadow transition sm:p-5 ${
                       isConfirmed
                         ? 'border-[rgba(60,138,86,0.35)] hover:border-[rgba(60,138,86,0.5)]'
                         : 'border-border hover:border-gold/40'
@@ -467,7 +492,7 @@ function AdminPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-serif text-xl leading-snug font-normal text-wine">{item.nome}</p>
+                        <p className="truncate font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
                       </div>
 
                       <button
@@ -603,7 +628,11 @@ function AdminPage() {
                   placeholder="WhatsApp com DDD (somente numeros)"
                   className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                 />
-                <button type="submit" disabled={savingGuest} className="btn-primary inline-flex items-center justify-center gap-2 md:justify-self-end">
+                <button
+                  type="submit"
+                  disabled={savingGuest}
+                  className={`${actionButtonClass} w-full md:w-auto md:justify-self-end`}
+                >
                   {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
                   {savingGuest ? 'Salvando...' : 'Cadastrar convidada'}
                 </button>
