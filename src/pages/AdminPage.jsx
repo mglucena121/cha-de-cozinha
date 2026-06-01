@@ -22,6 +22,7 @@ function AdminPage() {
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isGuestFormOpen, setIsGuestFormOpen] = useState(false)
 
   const actionButtonClass =
     'btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed'
@@ -57,6 +58,16 @@ function AdminPage() {
   const pendingGiftCount = useMemo(
     () => Math.max(presentes.length - confirmedGiftIds.size, 0),
     [presentes.length, confirmedGiftIds],
+  )
+
+  const confirmedGuestCount = useMemo(
+    () => convidadas.filter((item) => item.status === 'confirmada').length,
+    [convidadas],
+  )
+
+  const pendingGuestCount = useMemo(
+    () => Math.max(convidadas.length - confirmedGuestCount, 0),
+    [convidadas.length, confirmedGuestCount],
   )
 
   const loadData = useCallback(async ({ silent = false } = {}) => {
@@ -140,6 +151,10 @@ function AdminPage() {
   const handleSectionChange = useCallback((section) => {
     setActiveSection(section)
     closeMobileMenu()
+
+    if (section !== 'convidadas') {
+      setIsGuestFormOpen(false)
+    }
   }, [closeMobileMenu])
 
   const handleAddGift = async (event) => {
@@ -248,6 +263,7 @@ function AdminPage() {
     setGuestName('')
     setGuestWhatsapp('')
     setSavingGuest(false)
+    setIsGuestFormOpen(false)
     toast.success('Convidada cadastrada com sucesso!')
   }
 
@@ -596,39 +612,79 @@ function AdminPage() {
             )}
           </section>
         ) : (
-          <section className="animate-fade-up rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
-            <div className="mb-6">
-              <h2 className="font-sans text-[1.5rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
-              <div className="gold-divider mt-3 w-32" />
-              <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
-              <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">Total cadastradas: <strong className="text-[var(--ink)]">{convidadas.length}</strong></p>
+          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
+                <div className="gold-divider mt-3 w-32" />
+                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
+                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{convidadas.length}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">convidadas</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmedGuestCount}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmadas</p>
+                  </article>
+                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
+                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{pendingGuestCount}</p>
+                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">pendentes</p>
+                  </article>
+                </div>
+              </div>
+
+              <div className="sm:hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsGuestFormOpen((current) => !current)}
+                  className={`${actionButtonClass} w-full px-4 py-2.5`}
+                >
+                  {isGuestFormOpen ? <X size={18} /> : <Plus size={18} />}
+                  {isGuestFormOpen ? 'Fechar cadastro' : 'Nova convidada'}
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleAddGuest} className="mb-6 rounded-2xl border border-border bg-card p-4">
-              <p className="font-sans text-xs uppercase tracking-[0.18em] text-gold">Nova convidada</p>
-              <div className="mt-3 grid gap-3 md:grid-cols-[1.3fr_1fr_auto] md:items-center">
+            <form
+              onSubmit={handleAddGuest}
+              className={`${isGuestFormOpen ? 'mb-4 flex' : 'hidden'} flex-col rounded-2xl border border-border bg-card p-3 sm:mb-6 sm:flex sm:p-5`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-gold sm:text-xs">Nova convidada</p>
+                <button
+                  type="button"
+                  onClick={() => setIsGuestFormOpen(false)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-[var(--earth)] transition hover:bg-[rgba(120,53,34,0.08)] sm:hidden"
+                  aria-label="Fechar cadastro"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:gap-3 md:grid-cols-[1.3fr_1fr_auto] md:items-center">
                 <input
                   type="text"
                   value={guestName}
                   onChange={(event) => setGuestName(event.target.value)}
                   placeholder="Nome completo"
-                  className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
                 />
                 <input
                   type="text"
                   inputMode="numeric"
                   value={guestWhatsapp}
                   onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
-                  placeholder="WhatsApp com DDD (somente numeros)"
-                  className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                  placeholder="WhatsApp com DDD"
+                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
                 />
                 <button
                   type="submit"
                   disabled={savingGuest}
-                  className={`${actionButtonClass} w-full md:w-auto md:justify-self-end`}
+                  className={`${actionButtonClass} w-full px-4 py-2.5 md:w-auto md:justify-self-end`}
                 >
                   {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                  {savingGuest ? 'Salvando...' : 'Cadastrar convidada'}
+                  {savingGuest ? 'Salvando...' : 'Cadastrar'}
                 </button>
               </div>
             </form>
@@ -642,12 +698,12 @@ function AdminPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2">
                 {convidadas.map((item) => (
-                  <article key={item.id} className="rounded-2xl border border-border bg-card p-5 elegant-shadow">
+                  <article key={item.id} className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow sm:p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-serif text-xl leading-snug font-normal text-wine">{item.nome}</p>
+                        <p className="font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
                         <p className="text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
                       </div>
 
