@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Gift, HeartHandshake, Loader2, LogOut, Plus, RefreshCw, Search, Trash2, Users, MessageCircle } from 'lucide-react'
+import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, RefreshCw, Search, Trash2, Users, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -21,6 +21,7 @@ function AdminPage() {
   const [savingGuest, setSavingGuest] = useState(false)
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const confirmacaoBaseUrl = useMemo(() => {
     if (typeof window === 'undefined') return '/confirmar'
@@ -123,6 +124,15 @@ function AdminPage() {
     toast.success('Sessao encerrada.')
     navigate('/login', { replace: true })
   }
+
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false)
+  }, [])
+
+  const handleSectionChange = useCallback((section) => {
+    setActiveSection(section)
+    closeMobileMenu()
+  }, [closeMobileMenu])
 
   const handleAddGift = async (event) => {
     event.preventDefault()
@@ -291,16 +301,16 @@ function AdminPage() {
   return (
     <main className="app-shell min-h-screen">
       <header className="sticky top-0 z-30 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2">
             <Gift size={14} className="text-gold" />
             <span className="font-serif text-xl text-wine">Chá de Cozinha</span>
           </div>
 
-          <nav className="flex flex-wrap items-center justify-end gap-2">
+          <nav className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
             <button
               type="button"
-              onClick={() => setActiveSection('presentes')}
+              onClick={() => handleSectionChange('presentes')}
               className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
                 activeSection === 'presentes'
                   ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(161, 38, 38, 0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
@@ -313,7 +323,7 @@ function AdminPage() {
 
             <button
               type="button"
-              onClick={() => setActiveSection('confirmacoes')}
+              onClick={() => handleSectionChange('confirmacoes')}
               className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
                 activeSection === 'confirmacoes'
                   ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
@@ -326,7 +336,7 @@ function AdminPage() {
 
             <button
               type="button"
-              onClick={() => setActiveSection('convidadas')}
+              onClick={() => handleSectionChange('convidadas')}
               className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
                 activeSection === 'convidadas'
                   ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
@@ -346,6 +356,70 @@ function AdminPage() {
               <span className="hidden sm:inline">Sair</span>
             </button>
           </nav>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+            className="inline-flex items-center justify-center rounded-full border border-[rgba(176,137,104,0.28)] bg-card p-2 text-[rgb(120,53,34)] shadow-sm transition hover:bg-[rgba(120,53,34,0.08)] sm:hidden"
+            aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
+
+        <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+          <div className="mx-4 mb-4 rounded-2xl border border-[rgba(176,137,104,0.22)] bg-[rgba(255,252,247,0.98)] p-3 shadow-[0_12px_30px_rgba(84,52,38,0.08)]">
+            <div className="grid gap-2">
+              <button
+                type="button"
+                onClick={() => handleSectionChange('presentes')}
+                className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-sans text-sm font-semibold transition ${
+                  activeSection === 'presentes'
+                    ? 'bg-[rgba(161,38,38,0.12)] text-wine'
+                    : 'text-[var(--earth)] hover:bg-[rgba(120,53,34,0.08)]'
+                }`}
+              >
+                <Gift size={16} />
+                Lista de Presentes
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSectionChange('confirmacoes')}
+                className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-sans text-sm font-semibold transition ${
+                  activeSection === 'confirmacoes'
+                    ? 'bg-[rgba(161,38,38,0.12)] text-wine'
+                    : 'text-[var(--earth)] hover:bg-[rgba(120,53,34,0.08)]'
+                }`}
+              >
+                <HeartHandshake size={16} />
+                Confirmações
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSectionChange('convidadas')}
+                className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-sans text-sm font-semibold transition ${
+                  activeSection === 'convidadas'
+                    ? 'bg-[rgba(161,38,38,0.12)] text-wine'
+                    : 'text-[var(--earth)] hover:bg-[rgba(120,53,34,0.08)]'
+                }`}
+              >
+                <Users size={16} />
+                Lista de Convidados
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-sans text-sm font-semibold text-[rgb(120,53,34)] transition hover:bg-[rgba(120,53,34,0.08)]"
+              >
+                <LogOut size={16} />
+                Sair
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
