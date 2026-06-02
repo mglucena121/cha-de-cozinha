@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AddGiftModal from '../components/AddGiftModal'
+import GiftImportButton from '../components/PresenteImporteExcel'
 
 function AdminPage() {
   const navigate = useNavigate()
@@ -260,6 +261,16 @@ function AdminPage() {
     toast.success('Presente removido da lista.')
     setDeletingGiftId(null)
   }
+
+  const handleImportedGifts = useCallback((importedGifts) => {
+    if (!importedGifts?.length) return
+
+    setPresentes((currentPresentes) => {
+      const currentIds = new Set(currentPresentes.map((item) => item.id))
+      const onlyNew = importedGifts.filter((item) => !currentIds.has(item.id))
+      return [...currentPresentes, ...onlyNew]
+    })
+  }, [])
 
   const handleStartGiftEdit = useCallback((gift) => {
     setEditingGiftId(gift.id)
@@ -751,7 +762,11 @@ function AdminPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
+                <GiftImportButton
+                  existingGiftNames={normalizedGiftNames}
+                  onImported={handleImportedGifts}
+                />
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
