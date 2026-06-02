@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Search, Trash2, Users, MessageCircle, Pencil, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -35,6 +35,7 @@ function AdminPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isGuestFormOpen, setIsGuestFormOpen] = useState(false)
+  const contentScrollRef = useRef(null)
 
   const actionButtonClass =
     'btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed'
@@ -197,6 +198,13 @@ function AdminPage() {
     if (section !== 'convidadas') {
       setIsGuestFormOpen(false)
     }
+
+    requestAnimationFrame(() => {
+      if (contentScrollRef.current) {
+        contentScrollRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      }
+      window.scrollTo(0, 0)
+    })
   }, [closeMobileMenu])
 
   const handleAddGift = async (event) => {
@@ -753,7 +761,7 @@ function AdminPage() {
         </div>
       </header>
 
-      <div className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
+      <div ref={contentScrollRef} className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
         activeSection === 'presentes' ? 'overflow-hidden' : 'overflow-y-auto'
       }`}>
         {activeSection === 'presentes' ? (
@@ -1053,6 +1061,8 @@ function AdminPage() {
                 <GuestImportButton
                   existingGuestPhones={normalizedGuestPhones}
                   onImported={handleImportedGuests}
+                  disabled={savingGuest}
+                  className="w-full px-4 py-2.5 md:hidden"
                 />
 
                 <button
@@ -1082,7 +1092,7 @@ function AdminPage() {
                 </button>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:gap-3 md:grid-cols-[1.3fr_1fr_auto] md:items-center">
+              <div className="mt-3 grid gap-2 sm:gap-3 md:grid-cols-[1.3fr_1fr_auto_auto] md:items-center">
                 <input
                   type="text"
                   value={guestName}
@@ -1097,6 +1107,12 @@ function AdminPage() {
                   onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="WhatsApp com DDD"
                   className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
+                />
+                <GuestImportButton
+                  existingGuestPhones={normalizedGuestPhones}
+                  onImported={handleImportedGuests}
+                  disabled={savingGuest}
+                  className="hidden px-4 py-2.5 md:inline-flex md:w-auto"
                 />
                 <button
                   type="submit"
@@ -1118,9 +1134,9 @@ function AdminPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2">
+              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-3 sm:grid-cols-2">
                 {convidadas.map((item) => (
-                  <article key={item.id} className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow sm:p-5">
+                  <article key={item.id} className="self-start rounded-2xl border border-border bg-card p-3 sm:p-4 md:p-3 elegant-shadow">
                     <div className="flex items-start justify-between gap-3">
                       {editingGuestId === item.id ? (
                         <div className="w-full space-y-2">
@@ -1142,12 +1158,12 @@ function AdminPage() {
                         </div>
                       ) : (
                         <div>
-                          <p className="font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
-                          <p className="text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
+                          <p className="font-serif text-base leading-snug font-normal text-wine sm:text-lg">{item.nome}</p>
+                          <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">{formatWhatsapp(item.whatsapp)}</p>
                         </div>
                       )}
 
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] ${
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] ${
                         item.status === 'confirmada'
                           ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
                           : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
@@ -1179,14 +1195,14 @@ function AdminPage() {
                         </button>
                       </div>
                     ) : (
-                      <div className="mt-4">
+                      <div className="mt-3">
                         <div className="grid grid-cols-3 gap-2">
                           <a
                             href={getInviteWhatsappUrl(item) ?? '#'}
                             onClick={(event) => handleInviteLinkClick(event, item)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(60,138,86,0.28)] bg-[rgba(60,138,86,0.12)] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.2)]"
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(60,138,86,0.28)] bg-[rgba(60,138,86,0.12)] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.2)] md:h-8"
                             aria-label={`Enviar convite para ${item.nome}`}
                           >
                             <MessageCircle size={16} />
@@ -1196,7 +1212,7 @@ function AdminPage() {
                             type="button"
                             onClick={() => handleStartGuestEdit(item)}
                             disabled={deletingGuestId === item.id}
-                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(176,137,104,0.32)] bg-[rgba(228,214,198,0.44)] text-[var(--earth)] transition hover:bg-[rgba(176,137,104,0.2)] disabled:cursor-not-allowed"
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(176,137,104,0.32)] bg-[rgba(228,214,198,0.44)] text-[var(--earth)] transition hover:bg-[rgba(176,137,104,0.2)] disabled:cursor-not-allowed md:h-8"
                             aria-label={`Editar ${item.nome}`}
                           >
                             <Pencil size={16} />
@@ -1206,7 +1222,7 @@ function AdminPage() {
                             type="button"
                             onClick={() => handleDeleteGuest(item.id)}
                             disabled={deletingGuestId === item.id}
-                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(179,90,60,0.28)] bg-[rgba(179,90,60,0.12)] text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.2)] disabled:cursor-not-allowed"
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(179,90,60,0.28)] bg-[rgba(179,90,60,0.12)] text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.2)] disabled:cursor-not-allowed md:h-8"
                             aria-label={`Excluir ${item.nome}`}
                           >
                             {deletingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
@@ -1214,9 +1230,9 @@ function AdminPage() {
                         </div>
 
                         <div className="mt-1 grid grid-cols-3 gap-2 text-center">
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[rgb(52,112,72)]">Enviar</span>
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--earth)]">Editar</span>
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--rust)]">Excluir</span>
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[rgb(52,112,72)] md:text-[10px]">Enviar</span>
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--earth)] md:text-[10px]">Editar</span>
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--rust)] md:text-[10px]">Excluir</span>
                         </div>
                       </div>
                     )}
