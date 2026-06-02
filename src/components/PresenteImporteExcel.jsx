@@ -116,11 +116,11 @@ function GiftImportButton({ existingGiftNames, onImported, disabled = false, cla
 
   return (
     <label
-      className={`btn-secondary font-sans inline-flex cursor-pointer items-center justify-center gap-2 text-sm disabled:cursor-not-allowed ${className}`}
+      className={`btn-primary font-sans inline-flex cursor-pointer items-center justify-center gap-2 text-sm disabled:cursor-not-allowed ${className}`}
       aria-disabled={disabled || importing}
     >
       {importing ? <Loader2 size={18} className="animate-spin" /> : <FileSpreadsheet size={18} />}
-      {importing ? 'Importando...' : 'Importar Excel'}
+      {importing ? 'Importando...' : 'Importar'}
       <input
         type="file"
         accept=".xlsx,.xls"
