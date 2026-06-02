@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AddGiftModal from '../components/AddGiftModal'
 import GiftImportButton from '../components/PresenteImporteExcel'
+import GuestImportButton from '../components/ConvidadaImporteExcel'
 
 function AdminPage() {
   const navigate = useNavigate()
@@ -103,6 +104,11 @@ function AdminPage() {
   const pendingGuestCount = useMemo(
     () => Math.max(convidadas.length - confirmedGuestCount, 0),
     [convidadas.length, confirmedGuestCount],
+  )
+
+  const normalizedGuestPhones = useMemo(
+    () => new Set(convidadas.map((item) => String(item.whatsapp || '').replace(/\D/g, '').trim())),
+    [convidadas],
   )
 
   const loadData = useCallback(async ({ silent = false } = {}) => {
@@ -269,6 +275,16 @@ function AdminPage() {
       const currentIds = new Set(currentPresentes.map((item) => item.id))
       const onlyNew = importedGifts.filter((item) => !currentIds.has(item.id))
       return [...currentPresentes, ...onlyNew]
+    })
+  }, [])
+
+  const handleImportedGuests = useCallback((importedGuests) => {
+    if (!importedGuests?.length) return
+
+    setConvidadas((currentGuests) => {
+      const currentIds = new Set(currentGuests.map((item) => item.id))
+      const onlyNew = importedGuests.filter((item) => !currentIds.has(item.id))
+      return [...onlyNew, ...currentGuests]
     })
   }, [])
 
@@ -1033,11 +1049,16 @@ function AdminPage() {
                 </div>
               </div>
 
-              <div className="sm:hidden">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
+                <GuestImportButton
+                  existingGuestPhones={normalizedGuestPhones}
+                  onImported={handleImportedGuests}
+                />
+
                 <button
                   type="button"
                   onClick={() => setIsGuestFormOpen((current) => !current)}
-                  className={`${actionButtonClass} w-full px-4 py-2.5`}
+                  className={`${actionButtonClass} w-full px-4 py-2.5 sm:hidden`}
                 >
                   {isGuestFormOpen ? <X size={18} /> : <Plus size={18} />}
                   {isGuestFormOpen ? 'Fechar cadastro' : 'Nova convidada'}
