@@ -314,7 +314,7 @@ function AdminPage() {
       }
 
       const inviteLink = buildInviteLink(guest.token)
-      const message = `Ola, ${guest.nome}!\nVoce esta convidada para o nosso Cha de Cozinha!\nClique no link para confirmar sua presenca e escolher seu presente:\n\n${inviteLink}\n\nMal podemos esperar para celebrar com voce!`
+      const message = `Olá, ${guest.nome}!\nVocê está convidada para o nosso Chá de Cozinha!\nClique no link para confirmar sua presença e escolher seu presente:\n\n${inviteLink}\n\nMal podemos esperar para celebrar com você!`
       return `https://wa.me/55${normalizedWhatsapp}?text=${encodeURIComponent(message)}`
     },
     [buildInviteLink],
@@ -325,13 +325,13 @@ function AdminPage() {
 
     if (!normalizedWhatsapp) {
       event.preventDefault()
-      toast.error('WhatsApp invalido para envio do convite.')
+      toast.error('WhatsApp inválido para envio do convite.')
       return
     }
 
     if (!guest.token) {
       event.preventDefault()
-      toast.error('Token de convite nao encontrado para esta convidada.')
+      toast.error('Token de convite não encontrado para esta convidada.')
     }
   }, [])
 
