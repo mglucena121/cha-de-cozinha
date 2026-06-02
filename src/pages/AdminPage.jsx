@@ -1061,27 +1061,29 @@ function AdminPage() {
                 <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite único e acompanhe o status.</p>
                 <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
                   <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{convidadas.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">convidadas</p>
+                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{convidadas.length}</p>
+                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">convidadas</p>
                   </article>
                   <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmedGuestCount}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmadas</p>
+                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{confirmedGuestCount}</p>
+                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">confirmadas</p>
                   </article>
                   <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{pendingGuestCount}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">pendentes</p>
+                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{pendingGuestCount}</p>
+                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">pendentes</p>
                   </article>
                 </div>
               </div>
 
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
-                <GuestImportButton
-                  existingGuestPhones={normalizedGuestPhones}
-                  onImported={handleImportedGuests}
-                  disabled={savingGuest}
-                  className="w-full px-4 py-2.5 md:hidden"
-                />
+                {!isGuestFormOpen ? (
+                  <GuestImportButton
+                    existingGuestPhones={normalizedGuestPhones}
+                    onImported={handleImportedGuests}
+                    disabled={savingGuest}
+                    className="w-full px-4 py-2.5 md:hidden"
+                  />
+                ) : null}
 
                 <button
                   type="button"
@@ -1130,7 +1132,7 @@ function AdminPage() {
                   existingGuestPhones={normalizedGuestPhones}
                   onImported={handleImportedGuests}
                   disabled={savingGuest}
-                  className="hidden px-4 py-2.5 md:inline-flex md:w-auto"
+                  className="!hidden px-4 py-2.5 md:!inline-flex md:w-auto"
                 />
                 <button
                   type="submit"

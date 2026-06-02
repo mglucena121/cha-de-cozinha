@@ -4,7 +4,7 @@ function AddGiftModal({ isOpen, giftName, onGiftNameChange, onClose, onSubmit, l
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(47,30,22,0.35)] px-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(47,30,22,0.35)] px-4 py-4 sm:items-center sm:py-8">
       <div className="glass-card fade-rise w-full max-w-md p-6 sm:p-7">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
