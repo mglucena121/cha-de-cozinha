@@ -873,7 +873,7 @@ function AdminPage() {
                             </div>
                           </div>
                         ) : (
-                          <p className="truncate font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
+                          <p className="truncate font-sans text-xl leading-snug font-semibold tracking-[0.01em] text-wine sm:text-2xl">{item.nome}</p>
                         )}
                       </div>
 
@@ -902,14 +902,14 @@ function AdminPage() {
 
                     <div className="mt-4 flex items-center gap-2">
                       <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-gold'}`} />
-                      <span className={`font-sans text-[11px] font-medium uppercase tracking-[0.14em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
+                      <span className={`font-sans text-xs font-semibold uppercase tracking-[0.14em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
                         {isConfirmed ? 'Reservado' : 'Aguardando'}
                       </span>
                     </div>
 
                     {isConfirmed && reservedByName ? (
-                      <p className="mt-2 font-sans text-xs text-muted-foreground">
-                        <span className="font-medium text-[var(--ink)]">{reservedByName}</span>
+                      <p className="mt-2 font-sans text-sm text-muted-foreground">
+                        <span className="font-semibold text-[var(--ink)]">{reservedByName}</span>
                       </p>
                     ) : null}
                   </article>
@@ -978,7 +978,7 @@ function AdminPage() {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate font-serif text-base leading-snug font-normal text-wine [font-variant-numeric:lining-nums]">{item.primeiro_nome}</p>
+                          <p className="truncate font-sans text-lg leading-snug font-semibold tracking-[0.01em] text-wine [font-variant-numeric:lining-nums] sm:text-xl">{item.primeiro_nome}</p>
                           <p className="text-sm text-muted-foreground">
                             {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
                           </p>
@@ -1002,11 +1002,11 @@ function AdminPage() {
                     {editingConfirmationId === item.id ? (
                       <div className="space-y-3">
                         <label className="block">
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Trocar presente</span>
+                          <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Trocar presente</span>
                           <select
                             value={editingConfirmationGiftId}
                             onChange={(event) => setEditingConfirmationGiftId(event.target.value)}
-                            className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                            className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 font-sans text-base font-medium text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                           >
                             <option value="">Selecione um presente</option>
                             {presentes
@@ -1044,7 +1044,7 @@ function AdminPage() {
                     ) : (
                       <div className="flex items-center gap-2 text-sm">
                         <Gift size={16} className="text-gold" />
-                        <span className="font-sans truncate text-[var(--ink)]">{item.presente_nome}</span>
+                        <span className="font-sans truncate text-base font-semibold text-[var(--ink)] sm:text-[1.05rem]">{item.presente_nome}</span>
                       </div>
                     )}
                   </article>
@@ -1058,7 +1058,7 @@ function AdminPage() {
               <div>
                 <h2 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
                 <div className="gold-divider mt-3 w-32" />
-                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite unico e acompanhe o status.</p>
+                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite único e acompanhe o status.</p>
                 <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
                   <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
                     <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{convidadas.length}</p>
@@ -1099,7 +1099,7 @@ function AdminPage() {
               className={`${isGuestFormOpen ? 'mb-4 flex' : 'hidden'} flex-col rounded-2xl border border-border bg-card p-3 sm:mb-6 sm:flex sm:p-5`}
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="font-sans text-[11px] uppercase tracking-[0.18em] text-gold sm:text-xs">Nova convidada</p>
+                <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-gold sm:text-sm">Nova convidada</p>
                 <button
                   type="button"
                   onClick={() => setIsGuestFormOpen(false)}
@@ -1116,7 +1116,7 @@ function AdminPage() {
                   value={guestName}
                   onChange={(event) => setGuestName(event.target.value)}
                   placeholder="Nome completo"
-                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
+                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
                 />
                 <input
                   type="text"
@@ -1124,7 +1124,7 @@ function AdminPage() {
                   value={guestWhatsapp}
                   onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="WhatsApp com DDD"
-                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
+                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
                 />
                 <GuestImportButton
                   existingGuestPhones={normalizedGuestPhones}
@@ -1163,7 +1163,7 @@ function AdminPage() {
                             value={editingGuestName}
                             onChange={(event) => setEditingGuestName(event.target.value)}
                             placeholder="Nome completo"
-                            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                           />
                           <input
                             type="text"
@@ -1171,17 +1171,17 @@ function AdminPage() {
                             value={editingGuestWhatsapp}
                             onChange={(event) => setEditingGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                             placeholder="WhatsApp com DDD"
-                            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                           />
                         </div>
                       ) : (
                         <div>
-                          <p className="font-serif text-base leading-snug font-normal text-wine sm:text-lg">{item.nome}</p>
-                          <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">{formatWhatsapp(item.whatsapp)}</p>
+                          <p className="font-sans text-lg leading-snug font-semibold tracking-[0.01em] text-wine sm:text-xl">{item.nome}</p>
+                          <p className="font-sans text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
                         </div>
                       )}
 
-                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] ${
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.08em] ${
                         item.status === 'confirmada'
                           ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
                           : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
