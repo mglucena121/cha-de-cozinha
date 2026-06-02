@@ -33,9 +33,17 @@ create unique index if not exists convidadas_presente_id_unico
   on public.convidadas (presente_id)
   where presente_id is not null;
 
+create or replace view public.presentes_reservados as
+select presente_id
+from public.convidadas
+where status = 'confirmada'
+  and presente_id is not null;
+
 alter table public.presentes enable row level security;
 alter table public.confirmacoes enable row level security;
 alter table public.convidadas enable row level security;
+
+grant select on public.presentes_reservados to anon, authenticated;
 
 create or replace function public.request_invite_token()
 returns text

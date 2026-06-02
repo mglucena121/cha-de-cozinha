@@ -36,11 +36,7 @@ function ConfirmacaoPage() {
     ] = await Promise.all([
       inviteClient.from('convidadas').select('id, nome, status, presente_id, token').eq('token', token).single(),
       inviteClient.from('presentes').select('id, nome, created_at').order('created_at', { ascending: true }),
-      inviteClient
-        .from('convidadas')
-        .select('token, nome, presente_id, status')
-        .eq('status', 'confirmada')
-        .not('presente_id', 'is', null),
+      inviteClient.from('presentes_reservados').select('presente_id'),
     ])
 
     if (convidadaError) {
@@ -74,9 +70,9 @@ function ConfirmacaoPage() {
     const nextReservedByGiftId = {}
 
     reservations.forEach((item) => {
-      if (item.token === token) return
       if (!item.presente_id) return
-      nextReservedByGiftId[item.presente_id] = item.nome || 'Convidada'
+      if (item.presente_id === convidadaData?.presente_id) return
+      nextReservedByGiftId[item.presente_id] = true
     })
 
     setConvidada(convidadaData)
