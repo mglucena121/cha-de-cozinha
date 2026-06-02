@@ -296,3 +296,56 @@ h6 {
 		}
 	}
 }
+
+@media (orientation: landscape) and (max-height: 560px) {
+	.app-shell::before,
+	.app-shell::after {
+		display: none;
+	}
+
+	.admin-page-shell {
+		height: auto;
+		min-height: 100dvh;
+		overflow-y: auto;
+	}
+
+	.admin-page-header {
+		position: sticky;
+		top: 0;
+	}
+
+	.admin-page-content {
+		gap: 0.75rem;
+		padding-top: 4.5rem;
+		padding-bottom: 0.75rem;
+	}
+
+	.admin-section-card {
+		padding: 0.9rem;
+	}
+
+	.auth-shell {
+		align-items: flex-start;
+		padding-top: 0.75rem;
+		padding-bottom: 0.75rem;
+	}
+
+	.auth-card {
+		padding: 1rem;
+		max-height: none;
+	}
+
+	.invite-shell {
+		padding-top: 0.75rem;
+		padding-bottom: 0.75rem;
+	}
+
+	.invite-card {
+		padding: 1rem;
+	}
+
+	.invite-card h1 {
+		font-size: 1.75rem;
+		line-height: 1.15;
+	}
+}

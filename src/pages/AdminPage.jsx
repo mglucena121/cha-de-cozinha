@@ -648,15 +648,15 @@ function AdminPage() {
   }, [])
 
   return (
-    <main className="app-shell flex h-[100dvh] flex-col overflow-hidden">
-      <header className="fixed left-0 right-0 top-0 z-40 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
+    <main className="app-shell admin-page-shell flex h-[100dvh] flex-col overflow-hidden">
+      <header className="admin-page-header fixed left-0 right-0 top-0 z-40 border-b border-[rgba(176,137,104,0.28)] bg-[linear-gradient(120deg,rgba(255,255,252,0.98),rgba(252,248,242,0.94))] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2">
             <Gift size={14} className="text-gold" />
             <span className="font-serif text-xl text-wine">Chá de Cozinha</span>
           </div>
 
-          <nav className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+          <nav className="hidden flex-wrap items-center justify-end gap-2 lg:flex">
             <button
               type="button"
               onClick={() => handleSectionChange('presentes')}
@@ -709,7 +709,7 @@ function AdminPage() {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((current) => !current)}
-            className="inline-flex items-center justify-center rounded-full border border-[rgba(176,137,104,0.28)] bg-card p-2 text-[rgb(120,53,34)] shadow-sm transition hover:bg-[rgba(120,53,34,0.08)] sm:hidden"
+            className="inline-flex items-center justify-center rounded-full border border-[rgba(176,137,104,0.28)] bg-card p-2 text-[rgb(120,53,34)] shadow-sm transition hover:bg-[rgba(120,53,34,0.08)] lg:hidden"
             aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
             aria-expanded={isMobileMenuOpen}
           >
@@ -717,7 +717,7 @@ function AdminPage() {
           </button>
         </div>
 
-        <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+        <div className={`lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
           <div className="mx-4 mb-4 rounded-2xl border border-[rgba(176,137,104,0.22)] bg-[rgba(255,252,247,0.98)] p-3 shadow-[0_12px_30px_rgba(84,52,38,0.08)]">
             <div className="grid gap-2">
               <button
@@ -772,11 +772,11 @@ function AdminPage() {
         </div>
       </header>
 
-      <div ref={contentScrollRef} className={`mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
+      <div ref={contentScrollRef} className={`admin-page-content mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
         activeSection === 'presentes' ? 'overflow-hidden' : 'overflow-y-auto'
       }`}>
         {activeSection === 'presentes' ? (
-          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Presentes</h1>
@@ -873,7 +873,7 @@ function AdminPage() {
                             </div>
                           </div>
                         ) : (
-                          <p className="truncate font-sans text-xl leading-snug font-semibold tracking-[0.01em] text-wine sm:text-2xl">{item.nome}</p>
+                          <p className="truncate font-sans text-lg leading-snug font-medium tracking-[0.005em] text-wine sm:text-xl">{item.nome}</p>
                         )}
                       </div>
 
@@ -901,7 +901,7 @@ function AdminPage() {
                     </div>
 
                     <div className="mt-4 flex items-center gap-2">
-                      <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-gold'}`} />
+                      <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-[var(--earth)]'}`} />
                       <span className={`font-sans text-xs font-semibold uppercase tracking-[0.14em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
                         {isConfirmed ? 'Reservado' : 'Aguardando'}
                       </span>
@@ -919,7 +919,7 @@ function AdminPage() {
             )}
           </section>
         ) : activeSection === 'confirmacoes' ? (
-          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Confirmações</h1>
@@ -1053,7 +1053,7 @@ function AdminPage() {
             )}
           </section>
         ) : (
-          <section className="animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>

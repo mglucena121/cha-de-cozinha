@@ -62,9 +62,9 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] overflow-hidden flex items-center justify-center px-4 py-4 sm:px-5 sm:py-6 md:py-12">
+    <div className="auth-shell min-h-[100dvh] overflow-y-auto flex items-center justify-center px-4 py-4 sm:px-5 sm:py-6 md:py-12">
       <div className="w-full max-w-md animate-fade-up">
-        <div className="bg-card border border-border rounded-3xl elegant-shadow px-5 py-6 sm:px-7 sm:py-7 md:p-9 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-none">
+        <div className="auth-card bg-card border border-border rounded-3xl elegant-shadow px-5 py-6 sm:px-7 sm:py-7 md:p-9 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-none">
           <div className="text-center mb-6 sm:mb-8">
             <div className="inline-flex items-center gap-2 text-gold mb-4">
               <Sparkles className="h-4 w-4" />
