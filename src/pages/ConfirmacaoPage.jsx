@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Gift, Loader2, Send, CircleAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
-import { supabase, setInviteTokenHeader } from '../lib/supabase'
+import { createInviteClient } from '../lib/supabase'
 
 function ConfirmacaoPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')?.trim() ?? ''
+  const inviteClient = useMemo(() => createInviteClient(token), [token])
 
   const [convidada, setConvidada] = useState(null)
   const [selectedGiftId, setSelectedGiftId] = useState('')
@@ -33,9 +34,9 @@ function ConfirmacaoPage() {
       { data: giftsData, error: giftsError },
       { data: reservedData, error: reservedError },
     ] = await Promise.all([
-      supabase.from('convidadas').select('id, nome, status, presente_id, token').eq('token', token).single(),
-      supabase.from('presentes').select('id, nome, created_at').order('created_at', { ascending: true }),
-      supabase
+      inviteClient.from('convidadas').select('id, nome, status, presente_id, token').eq('token', token).single(),
+      inviteClient.from('presentes').select('id, nome, created_at').order('created_at', { ascending: true }),
+      inviteClient
         .from('convidadas')
         .select('token, nome, presente_id, status')
         .eq('status', 'confirmada')
@@ -94,13 +95,12 @@ function ConfirmacaoPage() {
     if (!silent) {
       setLoadingPage(false)
     }
-  }, [token])
+  }, [inviteClient, token])
 
   useEffect(() => {
-    setInviteTokenHeader(token)
     loadInviteData()
 
-    const channel = supabase
+    const channel = inviteClient
       .channel(`confirmacao-live-updates-${token || 'sem-token'}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'presentes' }, () => {
         loadInviteData({ silent: true })
@@ -116,10 +116,9 @@ function ConfirmacaoPage() {
 
     return () => {
       clearInterval(pollingId)
-      supabase.removeChannel(channel)
-      setInviteTokenHeader(null)
+      inviteClient.removeChannel(channel)
     }
-  }, [loadInviteData, token])
+  }, [inviteClient, loadInviteData, token])
 
   const handleConfirm = async (event) => {
     event.preventDefault()
@@ -146,7 +145,7 @@ function ConfirmacaoPage() {
 
     setConfirming(true)
 
-    const { error } = await supabase
+    const { error } = await inviteClient
       .from('convidadas')
       .update({ status: 'confirmada', presente_id: selectedGiftId })
       .eq('token', token)

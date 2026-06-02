@@ -28,6 +28,22 @@ function AdminPage() {
     'btn-primary font-sans inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed'
 
   const confirmacaoBaseUrl = useMemo(() => {
+    const publicAppUrl = import.meta.env.VITE_PUBLIC_APP_URL?.trim()
+
+    if (publicAppUrl) {
+      const normalizedPublicUrl = publicAppUrl.replace(/\/+$/, '')
+
+      if (normalizedPublicUrl.endsWith('/confirmar')) {
+        return normalizedPublicUrl
+      }
+
+      if (normalizedPublicUrl.endsWith('/confirmacao')) {
+        return `${normalizedPublicUrl.slice(0, -'/confirmacao'.length)}/confirmar`
+      }
+
+      return `${normalizedPublicUrl}/confirmar`
+    }
+
     if (typeof window === 'undefined') return '/confirmar'
     return `${window.location.origin}/confirmar`
   }, [])
@@ -284,29 +300,40 @@ function AdminPage() {
     setDeletingGuestId(null)
   }
 
-  const buildInviteLink = useCallback((token) => `${confirmacaoBaseUrl}?token=${token}`, [confirmacaoBaseUrl])
+  const buildInviteLink = useCallback(
+    (token) => `${confirmacaoBaseUrl}?token=${encodeURIComponent(token)}`,
+    [confirmacaoBaseUrl],
+  )
 
-  const handleSendInvite = useCallback(
+  const getInviteWhatsappUrl = useCallback(
     (guest) => {
       const normalizedWhatsapp = guest.whatsapp.replace(/\D/g, '')
 
-      if (!normalizedWhatsapp) {
-        toast.error('WhatsApp invalido para envio do convite.')
-        return
-      }
-
-      if (!guest.token) {
-        toast.error('Token de convite nao encontrado para esta convidada.')
-        return
+      if (!normalizedWhatsapp || !guest.token) {
+        return null
       }
 
       const inviteLink = buildInviteLink(guest.token)
-      const message = `Ola, ${guest.nome}! 🎉\nVoce esta convidada para o nosso Cha de Cozinha!\nClique no link para confirmar sua presenca e escolher seu presente:\n\n👉 ${inviteLink}\n\nMal podemos esperar para celebrar com voce! 💕`
-      const waUrl = `https://wa.me/55${normalizedWhatsapp}?text=${encodeURIComponent(message)}`
-      window.open(waUrl, '_blank', 'noopener,noreferrer')
+      const message = `Ola, ${guest.nome}!\nVoce esta convidada para o nosso Cha de Cozinha!\nClique no link para confirmar sua presenca e escolher seu presente:\n\n${inviteLink}\n\nMal podemos esperar para celebrar com voce!`
+      return `https://wa.me/55${normalizedWhatsapp}?text=${encodeURIComponent(message)}`
     },
     [buildInviteLink],
   )
+
+  const handleInviteLinkClick = useCallback((event, guest) => {
+    const normalizedWhatsapp = guest.whatsapp.replace(/\D/g, '')
+
+    if (!normalizedWhatsapp) {
+      event.preventDefault()
+      toast.error('WhatsApp invalido para envio do convite.')
+      return
+    }
+
+    if (!guest.token) {
+      event.preventDefault()
+      toast.error('Token de convite nao encontrado para esta convidada.')
+    }
+  }, [])
 
   const formatWhatsapp = useCallback((whatsapp) => {
     const digits = whatsapp.replace(/\D/g, '')
@@ -717,14 +744,16 @@ function AdminPage() {
                     </div>
 
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <button
-                        type="button"
-                        onClick={() => handleSendInvite(item)}
+                      <a
+                        href={getInviteWhatsappUrl(item) ?? '#'}
+                        onClick={(event) => handleInviteLinkClick(event, item)}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="btn-success font-sans inline-flex items-center justify-center gap-2"
                       >
                         <MessageCircle size={16} />
                         Enviar convite
-                      </button>
+                      </a>
 
                       <button
                         type="button"
