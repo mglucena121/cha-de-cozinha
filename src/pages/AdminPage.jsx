@@ -92,6 +92,17 @@ function AdminPage() {
     )
   }, [convidadas])
 
+  const confirmedGuestNameByGiftId = useMemo(() => {
+    return convidadas.reduce((acc, item) => {
+      if (item.status !== 'confirmada' || !item.presente_id) {
+        return acc
+      }
+
+      acc[item.presente_id] = item.nome
+      return acc
+    }, {})
+  }, [convidadas])
+
   const pendingGiftCount = useMemo(
     () => Math.max(presentes.length - confirmedGiftIds.size, 0),
     [presentes.length, confirmedGiftIds],
@@ -814,6 +825,7 @@ function AdminPage() {
               <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {presentes.map((item) => {
                   const isConfirmed = confirmedGiftIds.has(item.id)
+                  const reservedByName = confirmedGuestNameByGiftId[item.id]
                   const isEditing = editingGiftId === item.id
                   const isUpdating = updatingGiftId === item.id
                   const isDeleting = deletingGiftId === item.id
@@ -894,6 +906,12 @@ function AdminPage() {
                         {isConfirmed ? 'Reservado' : 'Aguardando'}
                       </span>
                     </div>
+
+                    {isConfirmed && reservedByName ? (
+                      <p className="mt-2 font-sans text-xs text-muted-foreground">
+                        <span className="font-medium text-[var(--ink)]">{reservedByName}</span>
+                      </p>
+                    ) : null}
                   </article>
                   )
                 })}
@@ -960,7 +978,7 @@ function AdminPage() {
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate font-serif text-base leading-snug font-normal text-wine">{item.primeiro_nome}</p>
+                          <p className="truncate font-serif text-base leading-snug font-normal text-wine [font-variant-numeric:lining-nums]">{item.primeiro_nome}</p>
                           <p className="text-sm text-muted-foreground">
                             {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
                           </p>
@@ -1026,7 +1044,7 @@ function AdminPage() {
                     ) : (
                       <div className="flex items-center gap-2 text-sm">
                         <Gift size={16} className="text-gold" />
-                        <span className="truncate text-[var(--ink)]">{item.presente_nome}</span>
+                        <span className="font-sans truncate text-[var(--ink)]">{item.presente_nome}</span>
                       </div>
                     )}
                   </article>
