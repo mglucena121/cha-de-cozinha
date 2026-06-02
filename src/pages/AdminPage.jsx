@@ -26,6 +26,9 @@ function AdminPage() {
   const [editingGuestName, setEditingGuestName] = useState('')
   const [editingGuestWhatsapp, setEditingGuestWhatsapp] = useState('')
   const [updatingGuestId, setUpdatingGuestId] = useState(null)
+  const [editingConfirmationId, setEditingConfirmationId] = useState(null)
+  const [editingConfirmationGiftId, setEditingConfirmationGiftId] = useState('')
+  const [updatingConfirmationId, setUpdatingConfirmationId] = useState(null)
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -69,6 +72,14 @@ function AdminPage() {
       `${item.primeiro_nome} ${item.presente_nome}`.toLowerCase().includes(normalizedSearch),
     )
   }, [confirmacoes, searchTerm])
+
+  const assignedGiftIds = useMemo(() => {
+    return new Set(
+      convidadas
+        .filter((item) => item.presente_id)
+        .map((item) => item.presente_id),
+    )
+  }, [convidadas])
 
   const confirmedGiftIds = useMemo(() => {
     return new Set(
@@ -124,6 +135,7 @@ function AdminPage() {
           id: item.id,
           primeiro_nome: item.nome,
           presente_nome: item.presente.nome,
+          presente_id: item.presente.id,
           created_at: item.created_at,
         })),
     )
@@ -363,6 +375,11 @@ function AdminPage() {
   }
 
   const handleDeleteGuest = async (guestId) => {
+    if (editingConfirmationId === guestId) {
+      setEditingConfirmationId(null)
+      setEditingConfirmationGiftId('')
+    }
+
     if (editingGuestId === guestId) {
       setEditingGuestId(null)
       setEditingGuestName('')
@@ -386,16 +403,89 @@ function AdminPage() {
   }
 
   const handleStartGuestEdit = useCallback((guest) => {
+    if (editingConfirmationId) {
+      setEditingConfirmationId(null)
+      setEditingConfirmationGiftId('')
+    }
+
     setEditingGuestId(guest.id)
     setEditingGuestName(guest.nome)
     setEditingGuestWhatsapp(guest.whatsapp.replace(/\D/g, '').slice(0, 11))
-  }, [])
+  }, [editingConfirmationId])
 
   const handleCancelGuestEdit = useCallback(() => {
     setEditingGuestId(null)
     setEditingGuestName('')
     setEditingGuestWhatsapp('')
   }, [])
+
+  const handleStartConfirmationEdit = useCallback((confirmation) => {
+    if (editingGuestId) {
+      setEditingGuestId(null)
+      setEditingGuestName('')
+      setEditingGuestWhatsapp('')
+    }
+
+    setEditingConfirmationId(confirmation.id)
+    setEditingConfirmationGiftId(confirmation.presente_id ?? '')
+  }, [editingGuestId])
+
+  const handleCancelConfirmationEdit = useCallback(() => {
+    setEditingConfirmationId(null)
+    setEditingConfirmationGiftId('')
+  }, [])
+
+  const handleUpdateConfirmationGift = useCallback(async (confirmationId) => {
+    const selectedGiftId = editingConfirmationGiftId
+
+    if (!selectedGiftId) {
+      toast.error('Selecione um presente para a troca.')
+      return
+    }
+
+    const currentConfirmation = confirmacoes.find((item) => item.id === confirmationId)
+
+    if (!currentConfirmation) {
+      toast.error('Confirmacao nao encontrada.')
+      return
+    }
+
+    if (currentConfirmation.presente_id === selectedGiftId) {
+      handleCancelConfirmationEdit()
+      return
+    }
+
+    const alreadyAssignedToAnotherGuest = convidadas.some(
+      (item) => item.id !== confirmationId && item.presente_id === selectedGiftId,
+    )
+
+    if (alreadyAssignedToAnotherGuest) {
+      toast.error('Este presente ja foi reservado por outra convidada.')
+      return
+    }
+
+    setUpdatingConfirmationId(confirmationId)
+
+    const { error } = await supabase
+      .from('convidadas')
+      .update({ presente_id: selectedGiftId })
+      .eq('id', confirmationId)
+
+    if (error) {
+      if (error.code === '23505') {
+        toast.error('Este presente ja foi reservado por outra convidada.')
+      } else {
+        toast.error(error.message)
+      }
+      setUpdatingConfirmationId(null)
+      return
+    }
+
+    handleCancelConfirmationEdit()
+    setUpdatingConfirmationId(null)
+    toast.success('Presente da confirmacao atualizado com sucesso!')
+    loadData({ silent: true })
+  }, [confirmacoes, convidadas, editingConfirmationGiftId, handleCancelConfirmationEdit, loadData])
 
   const handleUpdateGuest = useCallback(async (guestId) => {
     const normalizedName = editingGuestName.trim()
@@ -824,25 +914,82 @@ function AdminPage() {
                     key={item.id}
                     className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40 sm:p-5"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-secondary font-serif text-wine">
-                        {item.primeiro_nome?.charAt(0).toUpperCase()}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-secondary font-serif text-wine">
+                          {item.primeiro_nome?.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate font-serif text-base leading-snug font-normal text-wine">{item.primeiro_nome}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="min-w-0">
-                        <p className="truncate font-serif text-base leading-snug font-normal text-wine">{item.primeiro_nome}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.created_at && new Date(item.created_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
+                      {editingConfirmationId === item.id ? null : (
+                        <button
+                          type="button"
+                          onClick={() => handleStartConfirmationEdit(item)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:text-[var(--wine)]"
+                          aria-label={`Editar confirmacao de ${item.primeiro_nome}`}
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      )}
                     </div>
 
                     <div className="gold-divider my-4" />
 
-                    <div className="flex items-center gap-2 text-sm">
-                      <Gift size={16} className="text-gold" />
-                      <span className="truncate text-[var(--ink)]">{item.presente_nome}</span>
-                    </div>
+                    {editingConfirmationId === item.id ? (
+                      <div className="space-y-3">
+                        <label className="block">
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Trocar presente</span>
+                          <select
+                            value={editingConfirmationGiftId}
+                            onChange={(event) => setEditingConfirmationGiftId(event.target.value)}
+                            className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                          >
+                            <option value="">Selecione um presente</option>
+                            {presentes
+                              .filter((gift) => !assignedGiftIds.has(gift.id) || gift.id === item.presente_id)
+                              .map((gift) => (
+                                <option key={gift.id} value={gift.id}>
+                                  {gift.nome}
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateConfirmationGift(item.id)}
+                            disabled={updatingConfirmationId === item.id}
+                            className="btn-success font-sans inline-flex items-center justify-center gap-2"
+                          >
+                            {updatingConfirmationId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                            Salvar
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleCancelConfirmationEdit}
+                            disabled={updatingConfirmationId === item.id}
+                            className="btn-secondary font-sans inline-flex items-center justify-center gap-2"
+                          >
+                            <X size={16} />
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Gift size={16} className="text-gold" />
+                        <span className="truncate text-[var(--ink)]">{item.presente_nome}</span>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
