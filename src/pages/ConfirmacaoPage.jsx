@@ -168,7 +168,7 @@ function ConfirmacaoPage() {
 
   if (loadingPage) {
     return (
-      <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
+      <main className="app-shell flex min-h-screen items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:py-10">
         <section className="glass-card fade-rise w-full max-w-2xl p-7 text-center sm:p-10">
           <p className="inline-flex items-center gap-2 text-[var(--earth)]"><Loader2 size={18} className="animate-spin" /> Carregando convite...</p>
         </section>
@@ -178,7 +178,7 @@ function ConfirmacaoPage() {
 
   if (!convidada) {
     return (
-      <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
+      <main className="app-shell flex min-h-screen items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:py-10">
         <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
           <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
           <h1 className="mt-1 text-4xl text-[var(--ink)]">Convite não encontrado</h1>
@@ -192,7 +192,7 @@ function ConfirmacaoPage() {
   }
 
   return (
-    <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
+    <main className="app-shell flex min-h-screen items-start justify-center overflow-y-auto px-4 py-8 sm:items-center sm:py-10">
       <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
         <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
         <h1 className="mt-1 text-4xl text-[var(--ink)]">{isConfirmed ? 'Presença Confirmada' : 'Confirme sua Presença'}</h1>
