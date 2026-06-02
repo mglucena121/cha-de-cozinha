@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Search, Trash2, Users, MessageCircle } from 'lucide-react'
+import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Search, Trash2, Users, MessageCircle, Pencil, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -15,6 +15,9 @@ function AdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [giftName, setGiftName] = useState('')
   const [savingGift, setSavingGift] = useState(false)
+  const [editingGiftId, setEditingGiftId] = useState(null)
+  const [editingGiftName, setEditingGiftName] = useState('')
+  const [updatingGiftId, setUpdatingGiftId] = useState(null)
   const [deletingGiftId, setDeletingGiftId] = useState(null)
   const [guestName, setGuestName] = useState('')
   const [guestWhatsapp, setGuestWhatsapp] = useState('')
@@ -219,6 +222,11 @@ function AdminPage() {
   }
 
   const handleDeleteGift = async (giftId) => {
+    if (editingGiftId === giftId) {
+      setEditingGiftId(null)
+      setEditingGiftName('')
+    }
+
     setDeletingGiftId(giftId)
 
     const { error } = await supabase.from('presentes').delete().eq('id', giftId)
@@ -236,6 +244,73 @@ function AdminPage() {
     toast.success('Presente removido da lista.')
     setDeletingGiftId(null)
   }
+
+  const handleStartGiftEdit = useCallback((gift) => {
+    setEditingGiftId(gift.id)
+    setEditingGiftName(gift.nome)
+  }, [])
+
+  const handleCancelGiftEdit = useCallback(() => {
+    setEditingGiftId(null)
+    setEditingGiftName('')
+  }, [])
+
+  const handleUpdateGift = useCallback(async (giftId) => {
+    const normalizedName = editingGiftName.trim().toLowerCase()
+
+    if (!normalizedName) {
+      toast.error('Informe o nome do presente.')
+      return
+    }
+
+    const currentGift = presentes.find((item) => item.id === giftId)
+
+    if (!currentGift) {
+      toast.error('Presente não encontrado.')
+      return
+    }
+
+    if (currentGift.nome.trim().toLowerCase() === normalizedName) {
+      setEditingGiftId(null)
+      setEditingGiftName('')
+      return
+    }
+
+    const duplicateExists = presentes.some(
+      (item) => item.id !== giftId && item.nome.trim().toLowerCase() === normalizedName,
+    )
+
+    if (duplicateExists) {
+      toast.error('Este presente ja esta na lista.')
+      return
+    }
+
+    setUpdatingGiftId(giftId)
+
+    const { data: updatedGift, error } = await supabase
+      .from('presentes')
+      .update({ nome: editingGiftName.trim() })
+      .eq('id', giftId)
+      .select('id, nome, created_at')
+      .single()
+
+    if (error) {
+      toast.error(error.message)
+      setUpdatingGiftId(null)
+      return
+    }
+
+    if (updatedGift) {
+      setPresentes((currentPresentes) =>
+        currentPresentes.map((item) => (item.id === giftId ? updatedGift : item)),
+      )
+    }
+
+    setUpdatingGiftId(null)
+    setEditingGiftId(null)
+    setEditingGiftName('')
+    toast.success('Presente atualizado com sucesso!')
+  }, [editingGiftName, presentes])
 
   const handleAddGuest = async (event) => {
     event.preventDefault()
@@ -523,6 +598,9 @@ function AdminPage() {
               <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {presentes.map((item) => {
                   const isConfirmed = confirmedGiftIds.has(item.id)
+                  const isEditing = editingGiftId === item.id
+                  const isUpdating = updatingGiftId === item.id
+                  const isDeleting = deletingGiftId === item.id
 
                   return (
                   <article
@@ -535,24 +613,69 @@ function AdminPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={editingGiftName}
+                              onChange={(event) => setEditingGiftName(event.target.value)}
+                              className="font-sans w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                              placeholder="Nome do presente"
+                              autoFocus
+                            />
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateGift(item.id)}
+                                disabled={isUpdating}
+                                className="font-sans inline-flex items-center gap-1 rounded-full border border-[rgba(60,138,86,0.35)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.08)] disabled:cursor-not-allowed"
+                              >
+                                {isUpdating ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                                Salvar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelGiftEdit}
+                                disabled={isUpdating}
+                                className="font-sans inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition hover:bg-[rgba(120,53,34,0.06)] disabled:cursor-not-allowed"
+                              >
+                                <X size={12} />
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="truncate font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
+                        )}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteGift(item.id)}
-                        disabled={deletingGiftId === item.id}
-                        className="rounded-full p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive disabled:cursor-not-allowed"
-                        aria-label={`Excluir ${item.nome}`}
-                      >
-                        {deletingGiftId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                      </button>
+                      <div className="flex items-center gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => handleStartGiftEdit(item)}
+                          disabled={isDeleting || isUpdating}
+                          className="rounded-full p-1 text-muted-foreground transition hover:text-[var(--wine)] disabled:cursor-not-allowed"
+                          aria-label={`Editar ${item.nome}`}
+                        >
+                          <Pencil size={16} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGift(item.id)}
+                          disabled={isDeleting || isUpdating}
+                          className="rounded-full p-1 text-muted-foreground transition hover:text-destructive disabled:cursor-not-allowed"
+                          aria-label={`Excluir ${item.nome}`}
+                        >
+                          {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-4 flex items-center gap-2">
                       <span className={`h-1.5 w-1.5 rounded-full ${isConfirmed ? 'bg-[rgb(52,112,72)]' : 'bg-gold'}`} />
                       <span className={`font-sans text-[11px] font-medium uppercase tracking-[0.14em] ${isConfirmed ? 'text-[rgb(52,112,72)]' : 'text-muted-foreground'}`}>
-                        {isConfirmed ? 'Confirmado' : 'Aguardando'}
+                        {isConfirmed ? 'Reservado' : 'Aguardando'}
                       </span>
                     </div>
                   </article>
