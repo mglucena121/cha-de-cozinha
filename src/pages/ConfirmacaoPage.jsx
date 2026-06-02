@@ -124,22 +124,22 @@ function ConfirmacaoPage() {
     event.preventDefault()
 
     if (!convidada) {
-      toast.error('Convite nao encontrado.')
+      toast.error('Convite não encontrado.')
       return
     }
 
     if (!selectedGiftId) {
-      toast.error('Selecione um presente disponivel.')
+      toast.error('Selecione um presente disponível.')
       return
     }
 
     if (convidada.status === 'confirmada' && convidada.presente_id) {
-      toast.success('Sua presenca ja esta confirmada.')
+      toast.success('Sua presença já está confirmada.')
       return
     }
 
     if (reservedByGiftId[selectedGiftId]) {
-      toast.error('Este presente ja foi reservado. Escolha outro item.')
+      toast.error('Este presente já foi reservado. Escolha outro item.')
       return
     }
 
@@ -163,7 +163,7 @@ function ConfirmacaoPage() {
 
     setConvidada((current) => (current ? { ...current, status: 'confirmada', presente_id: selectedGiftId } : current))
     setConfirming(false)
-    toast.success('Presenca confirmada com sucesso!')
+    toast.success('Presença confirmada com sucesso!')
     loadInviteData({ silent: true })
   }
 
@@ -184,8 +184,8 @@ function ConfirmacaoPage() {
     return (
       <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
         <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
-          <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Cha de Cozinha</p>
-          <h1 className="mt-1 text-4xl text-[var(--ink)]">Convite nao encontrado</h1>
+          <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
+          <h1 className="mt-1 text-4xl text-[var(--ink)]">Convite não encontrado</h1>
           <p className="mt-3 inline-flex items-center gap-2 text-[var(--earth)]">
             <CircleAlert size={18} />
             Verifique o link recebido no WhatsApp e tente novamente.
@@ -199,23 +199,14 @@ function ConfirmacaoPage() {
     <main className="app-shell flex min-h-screen items-center justify-center px-4 py-10">
       <section className="glass-card fade-rise w-full max-w-2xl p-7 sm:p-10">
         <p className="text-xs uppercase tracking-[0.28em] text-[var(--gold)]">Chá de Cozinha</p>
-        <h1 className="mt-1 text-4xl text-[var(--ink)]">{isConfirmed ? 'Presenca Confirmada' : 'Confirme sua Presenca'}</h1>
-        <p className="mt-3 text-[var(--earth)]">
-          Ola, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! {isConfirmed ? 'Sua presenca ja foi confirmada.' : 'Escolha um presente disponivel para concluir sua confirmacao.'}
-        </p>
-
-        <p className={`mt-4 inline-flex rounded-full px-3 py-1 font-sans text-sm font-medium ${
-          convidada.status === 'confirmada'
-            ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
-            : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
-        }`}>
-          {convidada.status === 'confirmada' ? 'Status: Confirmado' : 'Status: Pendente'}
-        </p>
+        <h1 className="mt-1 text-4xl text-[var(--ink)]">{isConfirmed ? 'Presença Confirmada' : 'Confirme sua Presença'}</h1>
 
         {isConfirmed ? (
           <section className="mt-8 grid gap-4">
-            <div className="font-sans text-sm text-[var(--earth)]">
-              Obrigada por confirmar sua presenca. Te esperamos no cha de cozinha!
+            <div className="text-[var(--earth)]">
+              <p className="text-base leading-relaxed sm:text-[1.05rem]">
+                Olá, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! Mal podemos esperar para celebrar com você no chá de cozinha.
+              </p>
             </div>
 
             <div>
@@ -228,7 +219,7 @@ function ConfirmacaoPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="font-sans text-sm sm:text-base">{confirmedGift?.nome ?? 'Presente selecionado'}</span>
                   <span className="rounded-full bg-[rgba(60,138,86,0.18)] px-2.5 py-1 font-sans text-xs uppercase tracking-[0.08em] text-[rgb(52,112,72)]">
-                    Confirmado
+                    Reservado
                   </span>
                 </div>
               </div>
@@ -236,15 +227,21 @@ function ConfirmacaoPage() {
           </section>
         ) : (
           <form className="mt-8 grid gap-4" onSubmit={handleConfirm}>
+            <div className="text-[var(--earth)]">
+              <p className="text-base leading-relaxed sm:text-[1.05rem]">
+                Olá, <strong className="text-[var(--ink)]">{convidada.nome}</strong>! Para confirmar sua presença, escolha um presente da lista abaixo.
+              </p>
+            </div>
+
             <div>
               <span className="mb-2 inline-flex items-center gap-2 font-sans text-sm text-[var(--earth)]">
                 <Gift size={16} />
-                Presentes disponiveis
+                Presentes disponíveis
               </span>
 
               {presentes.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[rgba(140,100,74,0.24)] bg-[rgba(255,252,247,0.82)] px-4 py-4 text-sm text-[var(--earth)]">
-                  Nenhum presente disponivel no momento.
+                  Nenhum presente disponível no momento.
                 </div>
               ) : (
                 <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:max-h-80">
