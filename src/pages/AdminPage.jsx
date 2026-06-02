@@ -22,6 +22,10 @@ function AdminPage() {
   const [guestName, setGuestName] = useState('')
   const [guestWhatsapp, setGuestWhatsapp] = useState('')
   const [savingGuest, setSavingGuest] = useState(false)
+  const [editingGuestId, setEditingGuestId] = useState(null)
+  const [editingGuestName, setEditingGuestName] = useState('')
+  const [editingGuestWhatsapp, setEditingGuestWhatsapp] = useState('')
+  const [updatingGuestId, setUpdatingGuestId] = useState(null)
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -359,6 +363,12 @@ function AdminPage() {
   }
 
   const handleDeleteGuest = async (guestId) => {
+    if (editingGuestId === guestId) {
+      setEditingGuestId(null)
+      setEditingGuestName('')
+      setEditingGuestWhatsapp('')
+    }
+
     setDeletingGuestId(guestId)
 
     const { error } = await supabase.from('convidadas').delete().eq('id', guestId)
@@ -374,6 +384,83 @@ function AdminPage() {
     toast.success('Convidada removida da lista.')
     setDeletingGuestId(null)
   }
+
+  const handleStartGuestEdit = useCallback((guest) => {
+    setEditingGuestId(guest.id)
+    setEditingGuestName(guest.nome)
+    setEditingGuestWhatsapp(guest.whatsapp.replace(/\D/g, '').slice(0, 11))
+  }, [])
+
+  const handleCancelGuestEdit = useCallback(() => {
+    setEditingGuestId(null)
+    setEditingGuestName('')
+    setEditingGuestWhatsapp('')
+  }, [])
+
+  const handleUpdateGuest = useCallback(async (guestId) => {
+    const normalizedName = editingGuestName.trim()
+    const normalizedWhatsapp = editingGuestWhatsapp.replace(/\D/g, '')
+
+    if (!normalizedName) {
+      toast.error('Informe o nome da convidada.')
+      return
+    }
+
+    if (!normalizedWhatsapp) {
+      toast.error('Informe o WhatsApp com DDD.')
+      return
+    }
+
+    if (normalizedWhatsapp.length < 10 || normalizedWhatsapp.length > 11) {
+      toast.error('Use um WhatsApp valido com DDD (10 ou 11 digitos).')
+      return
+    }
+
+    const currentGuest = convidadas.find((item) => item.id === guestId)
+
+    if (!currentGuest) {
+      toast.error('Convidada nao encontrada.')
+      return
+    }
+
+    const sameName = currentGuest.nome.trim() === normalizedName
+    const sameWhatsapp = currentGuest.whatsapp.replace(/\D/g, '') === normalizedWhatsapp
+
+    if (sameName && sameWhatsapp) {
+      handleCancelGuestEdit()
+      return
+    }
+
+    setUpdatingGuestId(guestId)
+
+    const { data: updatedGuest, error } = await supabase
+      .from('convidadas')
+      .update({ nome: normalizedName, whatsapp: normalizedWhatsapp })
+      .eq('id', guestId)
+      .select('id, nome, whatsapp, token, status, presente_id, created_at, presente:presentes(id, nome)')
+      .single()
+
+    if (error) {
+      toast.error(error.message)
+      setUpdatingGuestId(null)
+      return
+    }
+
+    if (updatedGuest) {
+      setConvidadas((currentGuests) =>
+        currentGuests.map((item) => (item.id === guestId ? updatedGuest : item)),
+      )
+      setConfirmacoes((currentConfirmacoes) =>
+        currentConfirmacoes.map((item) =>
+          item.id === guestId ? { ...item, primeiro_nome: updatedGuest.nome } : item,
+        ),
+      )
+    }
+
+    setUpdatingGuestId(null)
+    handleCancelGuestEdit()
+    toast.success('Convidada atualizada com sucesso!')
+  }, [convidadas, editingGuestName, editingGuestWhatsapp, handleCancelGuestEdit])
 
   const buildInviteLink = useCallback(
     (token) => `${confirmacaoBaseUrl}?token=${encodeURIComponent(token)}`,
@@ -852,10 +939,30 @@ function AdminPage() {
                 {convidadas.map((item) => (
                   <article key={item.id} className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow sm:p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
-                        <p className="text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
-                      </div>
+                      {editingGuestId === item.id ? (
+                        <div className="w-full space-y-2">
+                          <input
+                            type="text"
+                            value={editingGuestName}
+                            onChange={(event) => setEditingGuestName(event.target.value)}
+                            placeholder="Nome completo"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                          />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={editingGuestWhatsapp}
+                            onChange={(event) => setEditingGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
+                            placeholder="WhatsApp com DDD"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                          />
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-serif text-lg leading-snug font-normal text-wine sm:text-xl">{item.nome}</p>
+                          <p className="text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
+                        </div>
+                      )}
 
                       <span className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] ${
                         item.status === 'confirmada'
@@ -866,28 +973,70 @@ function AdminPage() {
                       </span>
                     </div>
 
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <a
-                        href={getInviteWhatsappUrl(item) ?? '#'}
-                        onClick={(event) => handleInviteLinkClick(event, item)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-success font-sans inline-flex items-center justify-center gap-2"
-                      >
-                        <MessageCircle size={16} />
-                        Enviar convite
-                      </a>
+                    {editingGuestId === item.id ? (
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateGuest(item.id)}
+                          disabled={updatingGuestId === item.id}
+                          className="btn-success font-sans inline-flex items-center justify-center gap-2"
+                        >
+                          {updatingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          Salvar
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteGuest(item.id)}
-                        disabled={deletingGuestId === item.id}
-                        className="btn-danger font-sans inline-flex items-center justify-center gap-2"
-                      >
-                        {deletingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                        Excluir
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={handleCancelGuestEdit}
+                          disabled={updatingGuestId === item.id}
+                          className="btn-secondary font-sans inline-flex items-center justify-center gap-2"
+                        >
+                          <X size={16} />
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
+                        <div className="grid grid-cols-3 gap-2">
+                          <a
+                            href={getInviteWhatsappUrl(item) ?? '#'}
+                            onClick={(event) => handleInviteLinkClick(event, item)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(60,138,86,0.28)] bg-[rgba(60,138,86,0.12)] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.2)]"
+                            aria-label={`Enviar convite para ${item.nome}`}
+                          >
+                            <MessageCircle size={16} />
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStartGuestEdit(item)}
+                            disabled={deletingGuestId === item.id}
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(176,137,104,0.32)] bg-[rgba(228,214,198,0.44)] text-[var(--earth)] transition hover:bg-[rgba(176,137,104,0.2)] disabled:cursor-not-allowed"
+                            aria-label={`Editar ${item.nome}`}
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteGuest(item.id)}
+                            disabled={deletingGuestId === item.id}
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(179,90,60,0.28)] bg-[rgba(179,90,60,0.12)] text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.2)] disabled:cursor-not-allowed"
+                            aria-label={`Excluir ${item.nome}`}
+                          >
+                            {deletingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                          </button>
+                        </div>
+
+                        <div className="mt-1 grid grid-cols-3 gap-2 text-center">
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[rgb(52,112,72)]">Enviar</span>
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--earth)]">Editar</span>
+                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--rust)]">Excluir</span>
+                        </div>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
