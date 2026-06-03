@@ -613,7 +613,7 @@ function AdminPage() {
 
       const inviteLink = buildInviteLink(guest.token)
       const message = `Olá, ${guest.nome}!\nVocê está convidada para o nosso Chá de Cozinha!\nClique no link para confirmar sua presença e escolher seu presente:\n\n${inviteLink}\n\nMal podemos esperar para celebrar com você!`
-      return `https://wa.me/55${normalizedWhatsapp}?text=${encodeURIComponent(message)}`
+      return `https://web.whatsapp.com/send?phone=55${normalizedWhatsapp}&text=${encodeURIComponent(message)}`
     },
     [buildInviteLink],
   )
