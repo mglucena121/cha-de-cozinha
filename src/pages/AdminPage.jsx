@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import AddGiftModal from '../components/AddGiftModal'
 import GiftImportButton from '../components/PresenteImporteExcel'
 import GuestImportButton from '../components/ConvidadaImporteExcel'
+import WhatsAppSequentialSender from '../components/WhatsAppSequentialSender'
 
 function AdminPage() {
   const navigate = useNavigate()
@@ -1076,6 +1077,11 @@ function AdminPage() {
               </div>
 
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
+                <WhatsAppSequentialSender
+                  guests={convidadas}
+                  getInviteWhatsappUrl={getInviteWhatsappUrl}
+                />
+
                 {!isGuestFormOpen ? (
                   <GuestImportButton
                     existingGuestPhones={normalizedGuestPhones}
