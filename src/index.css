@@ -297,6 +297,30 @@ h6 {
 	}
 }
 
+.admin-page-inner {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: calc(100dvh - 88px);
+}
+
+@media (min-width: 640px) {
+	.admin-page-inner {
+		min-height: calc(100dvh - 96px);
+	}
+}
+
+.admin-section-card {
+	flex: 1 1 auto;
+	min-height: calc(100dvh - 112px);
+}
+
+@media (min-width: 640px) {
+	.admin-section-card {
+		min-height: calc(100dvh - 128px);
+	}
+}
+
 @media (orientation: landscape) and (max-height: 560px) {
 	.app-shell::before,
 	.app-shell::after {

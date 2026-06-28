@@ -1,21 +1,38 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Search, Trash2, Users, MessageCircle, Pencil, Check } from 'lucide-react'
+import { Gift, HeartHandshake, Loader2, LogOut, Menu, X, Plus, Trash2, Users, MessageCircle, Pencil, Check, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import AddGiftModal from '../components/AddGiftModal'
+import {
+  buildConfirmacoesFromGuests,
+  buildWhatsappSendUrl,
+  normalizePhone,
+  scrollContentToTop,
+} from '../lib/adminHelpers'
+import AdminSearchInput from '../components/admin/AdminSearchInput'
+import AdminStats from '../components/admin/AdminStats'
+import FilterTabs from '../components/admin/FilterTabs'
+import Pagination from '../components/admin/Pagination'
 import GiftImportButton from '../components/PresenteImporteExcel'
 import GuestImportButton from '../components/ConvidadaImporteExcel'
 import WhatsAppSequentialSender from '../components/WhatsAppSequentialSender'
+
+const PRESENTES_PAGE_SIZE = 4
+const CONFIRMACOES_PAGE_SIZE = 4
+const CONVIDADAS_PAGE_SIZE = 4
+
+const NAV_ACTIVE_CLASS =
+  'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
+const NAV_INACTIVE_CLASS =
+  'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
 
 function AdminPage() {
   const navigate = useNavigate()
   const [activeSection, setActiveSection] = useState('presentes')
   const [presentes, setPresentes] = useState([])
   const [convidadas, setConvidadas] = useState([])
-  const [confirmacoes, setConfirmacoes] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isGiftFormOpen, setIsGiftFormOpen] = useState(false)
   const [giftName, setGiftName] = useState('')
   const [savingGift, setSavingGift] = useState(false)
   const [editingGiftId, setEditingGiftId] = useState(null)
@@ -34,6 +51,13 @@ function AdminPage() {
   const [updatingConfirmationId, setUpdatingConfirmationId] = useState(null)
   const [deletingGuestId, setDeletingGuestId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [presentesSearch, setPresentesSearch] = useState('')
+  const [presentesFilter, setPresentesFilter] = useState('all')
+  const [convidadasSearch, setConvidadasSearch] = useState('')
+  const [convidadasFilter, setConvidadasFilter] = useState('all')
+  const [presentesPage, setPresentesPage] = useState(1)
+  const [confirmacoesPage, setConfirmacoesPage] = useState(1)
+  const [convidadasPage, setConvidadasPage] = useState(1)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isGuestFormOpen, setIsGuestFormOpen] = useState(false)
   const contentScrollRef = useRef(null)
@@ -65,6 +89,11 @@ function AdminPage() {
   const normalizedGiftNames = useMemo(
     () => new Set(presentes.map((item) => item.nome.trim().toLowerCase())),
     [presentes],
+  )
+
+  const confirmacoes = useMemo(
+    () => buildConfirmacoesFromGuests(convidadas),
+    [convidadas],
   )
 
   const filteredConfirmacoes = useMemo(() => {
@@ -120,9 +149,67 @@ function AdminPage() {
   )
 
   const normalizedGuestPhones = useMemo(
-    () => new Set(convidadas.map((item) => String(item.whatsapp || '').replace(/\D/g, '').trim())),
+    () => new Set(convidadas.map((item) => normalizePhone(item.whatsapp))),
     [convidadas],
   )
+
+  const reservedPresentesCount = useMemo(
+    () => presentes.filter((item) => confirmedGiftIds.has(item.id)).length,
+    [presentes, confirmedGiftIds],
+  )
+
+  const filteredPresentes = useMemo(() => {
+    const normalizedSearch = presentesSearch.trim().toLowerCase()
+
+    return presentes.filter((item) => {
+      const isConfirmed = confirmedGiftIds.has(item.id)
+
+      if (presentesFilter === 'disponivel' && isConfirmed) return false
+      if (presentesFilter === 'reservado' && !isConfirmed) return false
+      if (normalizedSearch && !item.nome.toLowerCase().includes(normalizedSearch)) return false
+
+      return true
+    })
+  }, [presentes, presentesSearch, presentesFilter, confirmedGiftIds])
+
+  const filteredConvidadas = useMemo(() => {
+    const normalizedSearch = convidadasSearch.trim().toLowerCase()
+
+    return convidadas.filter((item) => {
+      if (convidadasFilter === 'confirmada' && item.status !== 'confirmada') return false
+      if (convidadasFilter === 'pendente' && item.status === 'confirmada') return false
+
+      if (normalizedSearch) {
+        const digits = item.whatsapp.replace(/\D/g, '')
+        const normalizedQuery = normalizedSearch.replace(/\D/g, '')
+        const matchesName = item.nome.toLowerCase().includes(normalizedSearch)
+        const matchesPhone = normalizedQuery.length > 0 && digits.includes(normalizedQuery)
+
+        if (!matchesName && !matchesPhone) return false
+      }
+
+      return true
+    })
+  }, [convidadas, convidadasSearch, convidadasFilter])
+
+  const paginatedPresentes = useMemo(() => {
+    const start = (presentesPage - 1) * PRESENTES_PAGE_SIZE
+    return filteredPresentes.slice(start, start + PRESENTES_PAGE_SIZE)
+  }, [filteredPresentes, presentesPage])
+
+  const paginatedConfirmacoes = useMemo(() => {
+    const start = (confirmacoesPage - 1) * CONFIRMACOES_PAGE_SIZE
+    return filteredConfirmacoes.slice(start, start + CONFIRMACOES_PAGE_SIZE)
+  }, [filteredConfirmacoes, confirmacoesPage])
+
+  const paginatedConvidadas = useMemo(() => {
+    const start = (convidadasPage - 1) * CONVIDADAS_PAGE_SIZE
+    return filteredConvidadas.slice(start, start + CONVIDADAS_PAGE_SIZE)
+  }, [filteredConvidadas, convidadasPage])
+
+  const presentesTotalPages = Math.max(1, Math.ceil(filteredPresentes.length / PRESENTES_PAGE_SIZE))
+  const confirmacoesTotalPages = Math.max(1, Math.ceil(filteredConfirmacoes.length / CONFIRMACOES_PAGE_SIZE))
+  const convidadasTotalPages = Math.max(1, Math.ceil(filteredConvidadas.length / CONVIDADAS_PAGE_SIZE))
 
   const loadData = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
@@ -146,19 +233,7 @@ function AdminPage() {
     }
 
     setPresentes(presentesData ?? [])
-    const guestsList = convidadasData ?? []
-    setConvidadas(guestsList)
-    setConfirmacoes(
-      guestsList
-        .filter((item) => item.status === 'confirmada' && item.presente?.nome)
-        .map((item) => ({
-          id: item.id,
-          primeiro_nome: item.nome,
-          presente_nome: item.presente.nome,
-          presente_id: item.presente.id,
-          created_at: item.created_at,
-        })),
-    )
+    setConvidadas(convidadasData ?? [])
     if (!silent) {
       setLoadingData(false)
     }
@@ -177,15 +252,55 @@ function AdminPage() {
       })
       .subscribe()
 
-    const pollingId = setInterval(() => {
-      loadData({ silent: true })
-    }, 12000)
-
     return () => {
-      clearInterval(pollingId)
       supabase.removeChannel(channel)
     }
   }, [loadData])
+
+  useEffect(() => {
+    setPresentesPage(1)
+  }, [presentesSearch, presentesFilter])
+
+  useEffect(() => {
+    setConfirmacoesPage(1)
+  }, [searchTerm])
+
+  useEffect(() => {
+    setConvidadasPage(1)
+  }, [convidadasSearch, convidadasFilter])
+
+  useEffect(() => {
+    if (presentesPage > presentesTotalPages) {
+      setPresentesPage(presentesTotalPages)
+    }
+  }, [presentesPage, presentesTotalPages])
+
+  useEffect(() => {
+    if (confirmacoesPage > confirmacoesTotalPages) {
+      setConfirmacoesPage(confirmacoesTotalPages)
+    }
+  }, [confirmacoesPage, confirmacoesTotalPages])
+
+  useEffect(() => {
+    if (convidadasPage > convidadasTotalPages) {
+      setConvidadasPage(convidadasTotalPages)
+    }
+  }, [convidadasPage, convidadasTotalPages])
+
+  const handlePresentesPageChange = useCallback((page) => {
+    setPresentesPage(page)
+    scrollContentToTop(contentScrollRef)
+  }, [])
+
+  const handleConfirmacoesPageChange = useCallback((page) => {
+    setConfirmacoesPage(page)
+    scrollContentToTop(contentScrollRef)
+  }, [])
+
+  const handleConvidadasPageChange = useCallback((page) => {
+    setConvidadasPage(page)
+    scrollContentToTop(contentScrollRef)
+  }, [])
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
@@ -195,7 +310,7 @@ function AdminPage() {
       return
     }
 
-    toast.success('Sessao encerrada.')
+    toast.success('Sessão encerrada.')
     navigate('/login', { replace: true })
   }
 
@@ -206,15 +321,20 @@ function AdminPage() {
   const handleSectionChange = useCallback((section) => {
     setActiveSection(section)
     closeMobileMenu()
+    setPresentesPage(1)
+    setConfirmacoesPage(1)
+    setConvidadasPage(1)
 
     if (section !== 'convidadas') {
       setIsGuestFormOpen(false)
     }
 
+    if (section !== 'presentes') {
+      setIsGiftFormOpen(false)
+    }
+
     requestAnimationFrame(() => {
-      if (contentScrollRef.current) {
-        contentScrollRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-      }
+      scrollContentToTop(contentScrollRef, 'auto')
       window.scrollTo(0, 0)
     })
   }, [closeMobileMenu])
@@ -260,11 +380,29 @@ function AdminPage() {
 
     setGiftName('')
     setSavingGift(false)
-    setIsModalOpen(false)
+    setIsGiftFormOpen(false)
     toast.success('Presente adicionado com sucesso!')
   }
 
   const handleDeleteGift = async (giftId) => {
+    const gift = presentes.find((item) => item.id === giftId)
+    const reservedByName = confirmedGuestNameByGiftId[giftId]
+
+    if (confirmedGiftIds.has(giftId)) {
+      toast.error(
+        reservedByName
+          ? `Este presente está reservado por ${reservedByName}. Não é possível excluir.`
+          : 'Este presente está reservado e não pode ser excluído.',
+      )
+      return
+    }
+
+    const confirmed = window.confirm(
+      gift ? `Excluir o presente "${gift.nome}"? Esta ação não pode ser desfeita.` : 'Excluir este presente?',
+    )
+
+    if (!confirmed) return
+
     if (editingGiftId === giftId) {
       setEditingGiftId(null)
       setEditingGiftName('')
@@ -392,7 +530,12 @@ function AdminPage() {
     }
 
     if (normalizedWhatsapp.length < 10 || normalizedWhatsapp.length > 11) {
-      toast.error('Use um WhatsApp valido com DDD (10 ou 11 digitos).')
+      toast.error('Use um WhatsApp válido com DDD (10 ou 11 dígitos).')
+      return
+    }
+
+    if (normalizedGuestPhones.has(normalizedWhatsapp)) {
+      toast.error('Este WhatsApp já está cadastrado.')
       return
     }
 
@@ -422,6 +565,17 @@ function AdminPage() {
   }
 
   const handleDeleteGuest = async (guestId) => {
+    const guest = convidadas.find((item) => item.id === guestId)
+
+    if (!guest) return
+
+    const message =
+      guest.status === 'confirmada'
+        ? `${guest.nome} já confirmou presença. Excluir mesmo assim? A confirmação também será removida.`
+        : `Excluir ${guest.nome} da lista? Esta ação não pode ser desfeita.`
+
+    if (!window.confirm(message)) return
+
     if (editingConfirmationId === guestId) {
       setEditingConfirmationId(null)
       setEditingConfirmationGiftId('')
@@ -444,7 +598,6 @@ function AdminPage() {
     }
 
     setConvidadas((currentGuests) => currentGuests.filter((item) => item.id !== guestId))
-    setConfirmacoes((currentConfirmacoes) => currentConfirmacoes.filter((item) => item.id !== guestId))
     toast.success('Convidada removida da lista.')
     setDeletingGuestId(null)
   }
@@ -493,7 +646,7 @@ function AdminPage() {
     const currentConfirmation = confirmacoes.find((item) => item.id === confirmationId)
 
     if (!currentConfirmation) {
-      toast.error('Confirmacao nao encontrada.')
+      toast.error('Confirmação não encontrada.')
       return
     }
 
@@ -549,14 +702,23 @@ function AdminPage() {
     }
 
     if (normalizedWhatsapp.length < 10 || normalizedWhatsapp.length > 11) {
-      toast.error('Use um WhatsApp valido com DDD (10 ou 11 digitos).')
+      toast.error('Use um WhatsApp válido com DDD (10 ou 11 dígitos).')
+      return
+    }
+
+    const phoneAlreadyUsed = convidadas.some(
+      (item) => item.id !== guestId && normalizePhone(item.whatsapp) === normalizedWhatsapp,
+    )
+
+    if (phoneAlreadyUsed) {
+      toast.error('Este WhatsApp já está cadastrado para outra convidada.')
       return
     }
 
     const currentGuest = convidadas.find((item) => item.id === guestId)
 
     if (!currentGuest) {
-      toast.error('Convidada nao encontrada.')
+      toast.error('Convidada não encontrada.')
       return
     }
 
@@ -587,11 +749,6 @@ function AdminPage() {
       setConvidadas((currentGuests) =>
         currentGuests.map((item) => (item.id === guestId ? updatedGuest : item)),
       )
-      setConfirmacoes((currentConfirmacoes) =>
-        currentConfirmacoes.map((item) =>
-          item.id === guestId ? { ...item, primeiro_nome: updatedGuest.nome } : item,
-        ),
-      )
     }
 
     setUpdatingGuestId(null)
@@ -606,7 +763,7 @@ function AdminPage() {
 
   const getInviteWhatsappUrl = useCallback(
     (guest) => {
-      const normalizedWhatsapp = guest.whatsapp.replace(/\D/g, '')
+      const normalizedWhatsapp = normalizePhone(guest.whatsapp)
 
       if (!normalizedWhatsapp || !guest.token) {
         return null
@@ -614,7 +771,7 @@ function AdminPage() {
 
       const inviteLink = buildInviteLink(guest.token)
       const message = `Olá, ${guest.nome}!\nVocê está convidada para o nosso Chá de Cozinha!\nClique no link para confirmar sua presença e escolher seu presente:\n\n${inviteLink}\n\nMal podemos esperar para celebrar com você!`
-      return `https://web.whatsapp.com/send?phone=55${normalizedWhatsapp}&text=${encodeURIComponent(message)}`
+      return buildWhatsappSendUrl(normalizedWhatsapp, message)
     },
     [buildInviteLink],
   )
@@ -662,9 +819,7 @@ function AdminPage() {
               type="button"
               onClick={() => handleSectionChange('presentes')}
               className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
-                activeSection === 'presentes'
-                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(161, 38, 38, 0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
-                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+                activeSection === 'presentes' ? NAV_ACTIVE_CLASS : NAV_INACTIVE_CLASS
               }`}
             >
               <Gift size={15} className="transition-transform duration-300 group-hover:scale-110" />
@@ -675,9 +830,7 @@ function AdminPage() {
               type="button"
               onClick={() => handleSectionChange('confirmacoes')}
               className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
-                activeSection === 'confirmacoes'
-                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
-                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+                activeSection === 'confirmacoes' ? NAV_ACTIVE_CLASS : NAV_INACTIVE_CLASS
               }`}
             >
               <HeartHandshake size={15} className="transition-transform duration-300 group-hover:scale-110" />
@@ -687,10 +840,8 @@ function AdminPage() {
             <button
               type="button"
               onClick={() => handleSectionChange('convidadas')}
-              className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-3 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
-                activeSection === 'convidadas'
-                  ? 'border border-[rgba(214,176,106,0.55)] bg-[rgba(255,255,255,0.94)] text-wine shadow-[0_4px_12px_rgba(84,52,38,0.08)]'
-                  : 'bg-transparent text-[var(--earth)] hover:bg-[rgba(120,53,34,0.14)] hover:text-[rgb(98,43,28)]'
+              className={`group font-sans inline-flex items-center gap-3 rounded-full px-6 py-2 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 ${
+                activeSection === 'convidadas' ? NAV_ACTIVE_CLASS : NAV_INACTIVE_CLASS
               }`}
             >
               <Users size={15} className="transition-transform duration-300 group-hover:scale-110" />
@@ -773,58 +924,113 @@ function AdminPage() {
         </div>
       </header>
 
-      <div ref={contentScrollRef} className={`admin-page-content mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8 ${
-        activeSection === 'presentes' ? 'overflow-hidden' : 'overflow-y-auto'
-      }`}>
+      <div
+        ref={contentScrollRef}
+        className="admin-page-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+      >
+        <div className="admin-page-inner mx-auto flex w-full max-w-6xl flex-col px-4 pb-6 pt-[88px] sm:px-6 sm:pb-8 sm:pt-[96px] lg:px-8">
         {activeSection === 'presentes' ? (
-          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Presentes</h1>
-                <div className="gold-divider mt-3 w-28" />
-                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{presentes.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">presentes</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmacoes.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmados</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{pendingGiftCount}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">pendentes</p>
-                  </article>
-                </div>
+          <section className="admin-section-card animate-fade-up flex flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine sm:text-[2rem]">
+                  Lista de Presentes
+                </h1>
+                <p className="mt-2 max-w-2xl font-sans text-sm leading-relaxed text-muted-foreground">
+                  Cadastre os itens do chá, acompanhe reservas e mantenha a lista sempre atualizada.
+                </p>
               </div>
 
-              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
+              <button
+                type="button"
+                onClick={() => setIsGiftFormOpen((current) => !current)}
+                className={`${actionButtonClass} gap-2 !rounded-xl !px-5 !py-2.5 !text-xs !font-bold !uppercase !tracking-[0.1em] sm:mt-1 sm:hidden`}
+              >
+                {isGiftFormOpen ? <X size={16} /> : <Plus size={16} />}
+                {isGiftFormOpen ? 'Fechar' : 'Novo presente'}
+              </button>
+            </div>
+
+            <AdminStats
+              variant="wide"
+              className="mt-5"
+              items={[
+                { value: presentes.length, label: 'presentes' },
+                { value: reservedPresentesCount, label: 'reservados' },
+                { value: pendingGiftCount, label: 'pendentes' },
+              ]}
+            />
+
+            <form
+              onSubmit={handleAddGift}
+              className={`${isGiftFormOpen ? 'mt-4 flex' : 'hidden'} flex-col rounded-2xl border border-[rgba(176,137,104,0.22)] bg-[rgba(255,252,247,0.72)] p-4 sm:mt-6 sm:flex sm:p-5`}
+            >
+              <p className="font-sans text-sm font-semibold uppercase tracking-[0.1em] text-[var(--earth)]">
+                Novo presente
+              </p>
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
+                <input
+                  type="text"
+                  value={giftName}
+                  onChange={(event) => setGiftName(event.target.value)}
+                  placeholder="Nome do presente"
+                  className="w-full rounded-xl border border-[rgba(176,137,104,0.22)] bg-white px-4 py-3 font-sans text-sm text-[var(--ink)] outline-none transition placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                />
                 <GiftImportButton
                   existingGiftNames={normalizedGiftNames}
                   onImported={handleImportedGifts}
+                  className="!w-full !rounded-xl !border !border-[rgba(176,137,104,0.32)] !bg-[rgba(228,214,198,0.55)] !px-5 !py-3 !text-xs !font-bold !uppercase !tracking-[0.1em] !text-[var(--earth)] hover:!bg-[rgba(176,137,104,0.22)] lg:!w-auto"
                 />
                 <button
-                  type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className={`${actionButtonClass} w-full sm:w-auto`}
+                  type="submit"
+                  disabled={savingGift}
+                  className={`${actionButtonClass} w-full gap-2 !rounded-xl !px-5 !py-3 !text-xs !font-bold !uppercase !tracking-[0.1em] lg:w-auto`}
                 >
-                  <Plus size={18} />
-                  Adicionar presente
+                  {savingGift ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                  {savingGift ? 'Salvando...' : 'Adicionar'}
                 </button>
               </div>
-            </div>
+            </form>
+
+            {presentes.length > 0 ? (
+              <div className="mb-4 mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+                <AdminSearchInput
+                  value={presentesSearch}
+                  onChange={(event) => setPresentesSearch(event.target.value)}
+                  placeholder="Buscar presente..."
+                  variant="soft"
+                  className="w-full lg:min-w-0 lg:flex-1"
+                />
+                <FilterTabs
+                  variant="segment"
+                  value={presentesFilter}
+                  onChange={setPresentesFilter}
+                  options={[
+                    { id: 'all', label: 'Todos' },
+                    { id: 'disponivel', label: 'Disponíveis' },
+                    { id: 'reservado', label: 'Reservados' },
+                  ]}
+                />
+              </div>
+            ) : null}
 
             {loadingData ? (
-              <div className="flex justify-center py-20">
+              <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : presentes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhum presente cadastrado ainda.</p>
               </div>
+            ) : filteredPresentes.length === 0 ? (
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
+                <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca ou filtro.</p>
+              </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {presentes.map((item) => {
+              <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {paginatedPresentes.map((item) => {
                   const isConfirmed = confirmedGiftIds.has(item.id)
                   const reservedByName = confirmedGuestNameByGiftId[item.id]
                   const isEditing = editingGiftId === item.id
@@ -834,7 +1040,7 @@ function AdminPage() {
                   return (
                   <article
                     key={item.id}
-                    className={`group rounded-2xl border bg-card p-4 elegant-shadow transition sm:p-5 ${
+                    className={`group flex h-full min-w-0 flex-col rounded-2xl border bg-card p-4 elegant-shadow transition ${
                       isConfirmed
                         ? 'border-[rgba(60,138,86,0.35)] hover:border-[rgba(60,138,86,0.5)]'
                         : 'border-border hover:border-gold/40'
@@ -878,7 +1084,7 @@ function AdminPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                      <div className="flex items-center gap-1 opacity-100 transition">
                         <button
                           type="button"
                           onClick={() => handleStartGiftEdit(item)}
@@ -909,68 +1115,80 @@ function AdminPage() {
                     </div>
 
                     {isConfirmed && reservedByName ? (
-                      <p className="mt-2 font-sans text-sm text-muted-foreground">
+                      <p className="mt-2 min-h-5 truncate font-sans text-sm text-muted-foreground">
                         <span className="font-semibold text-[var(--ink)]">{reservedByName}</span>
                       </p>
-                    ) : null}
+                    ) : (
+                      <p className="mt-2 min-h-5 font-sans text-sm text-muted-foreground" aria-hidden="true">
+                        {'\u00A0'}
+                      </p>
+                    )}
                   </article>
                   )
                 })}
               </div>
+              <Pagination
+                currentPage={presentesPage}
+                totalPages={presentesTotalPages}
+                onPageChange={handlePresentesPageChange}
+              />
+              </>
             )}
           </section>
         ) : activeSection === 'confirmacoes' ? (
-          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Confirmações</h1>
-                <div className="gold-divider mt-3 w-32" />
-                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{presentes.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">presentes</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{confirmacoes.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">confirmados</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.45rem] leading-none text-[var(--wine)] sm:text-[1.6rem]">{filteredConfirmacoes.length}</p>
-                    <p className="mt-0.5 font-sans text-[9px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[11px]">resultado</p>
-                  </article>
-                </div>
+          <section className="admin-section-card animate-fade-up flex flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine sm:text-[2rem]">
+                  Confirmações
+                </h1>
+                <p className="mt-2 max-w-2xl font-sans text-sm leading-relaxed text-muted-foreground">
+                  Veja quem confirmou presença, qual presente escolheu e gerencie as reservas em tempo real.
+                </p>
               </div>
-
-              <label className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 sm:min-w-[240px]">
-                <Search size={16} className="text-muted-foreground" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Buscar nome ou presente"
-                  className="w-full bg-transparent text-[var(--ink)] outline-none placeholder:text-muted-foreground"
-                />
-              </label>
             </div>
 
+            <AdminStats
+              variant="wide"
+              className="mt-5"
+              items={[
+                { value: confirmacoes.length, label: 'confirmadas' },
+                { value: presentes.length, label: 'presentes' },
+                { value: pendingGuestCount, label: 'convites pendentes' },
+              ]}
+            />
+
+            {confirmacoes.length > 0 ? (
+              <div className="mb-4 mt-6">
+                <AdminSearchInput
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Buscar por nome ou presente..."
+                  variant="soft"
+                  className="w-full"
+                />
+              </div>
+            ) : null}
+
             {loadingData ? (
-              <div className="flex justify-center py-20">
+              <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : confirmacoes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
-                <p className="text-sm leading-relaxed text-muted-foreground">Ainda nao ha confirmacoes.</p>
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
+                <p className="text-sm leading-relaxed text-muted-foreground">Ainda não há confirmações.</p>
               </div>
             ) : filteredConfirmacoes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca.</p>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredConfirmacoes.map((item) => (
+              <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {paginatedConfirmacoes.map((item) => (
                   <article
                     key={item.id}
-                    className="self-start rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40 sm:p-5"
+                    className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 elegant-shadow transition hover:border-gold/40"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
@@ -1000,6 +1218,7 @@ function AdminPage() {
 
                     <div className="gold-divider my-4" />
 
+                    <div className="mt-auto">
                     {editingConfirmationId === item.id ? (
                       <div className="space-y-3">
                         <label className="block">
@@ -1043,88 +1262,87 @@ function AdminPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Gift size={16} className="text-gold" />
+                      <div className="flex min-h-6 items-center gap-2 text-sm">
+                        <Gift size={16} className="shrink-0 text-gold" />
                         <span className="font-sans truncate text-base font-semibold text-[var(--ink)] sm:text-[1.05rem]">{item.presente_nome}</span>
                       </div>
                     )}
+                    </div>
                   </article>
                 ))}
               </div>
+              <Pagination
+                currentPage={confirmacoesPage}
+                totalPages={confirmacoesTotalPages}
+                onPageChange={handleConfirmacoesPageChange}
+              />
+              </>
             )}
           </section>
         ) : (
-          <section className="admin-section-card animate-fade-up flex min-h-0 flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine">Lista de Convidados</h2>
-                <div className="gold-divider mt-3 w-32" />
-                <p className="mt-1 font-sans text-muted-foreground">Cadastre convidadas, envie o convite único e acompanhe o status.</p>
-                <div className="mt-3 grid grid-cols-3 gap-1.5 sm:max-w-sm sm:gap-2">
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{convidadas.length}</p>
-                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">convidadas</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{confirmedGuestCount}</p>
-                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">confirmadas</p>
-                  </article>
-                  <article className="rounded-xl border border-[rgba(176,137,104,0.24)] bg-[rgba(228,214,198,0.72)] px-1.5 py-2 text-center sm:px-2">
-                    <p className="font-sans text-[1.2rem] leading-none text-[var(--wine)] sm:text-[1.35rem]">{pendingGuestCount}</p>
-                    <p className="mt-0.5 font-sans text-[8px] lowercase tracking-[0.02em] text-[var(--earth)] sm:text-[10px]">pendentes</p>
-                  </article>
-                </div>
+          <section className="admin-section-card animate-fade-up flex flex-1 flex-col rounded-3xl border border-border bg-card/90 p-5 elegant-shadow sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-serif text-[1.75rem] leading-snug tracking-[0.01em] font-normal text-wine sm:text-[2rem]">
+                  Lista de Convidados
+                </h1>
+                <p className="mt-2 max-w-2xl font-sans text-sm leading-relaxed text-muted-foreground">
+                  Gerencie suas convidadas, envie convites únicos e acompanhe o status de presença em tempo real.
+                </p>
               </div>
 
-              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
-                <WhatsAppSequentialSender
-                  guests={convidadas}
-                  getInviteWhatsappUrl={getInviteWhatsappUrl}
-                />
-
-                {!isGuestFormOpen ? (
-                  <GuestImportButton
-                    existingGuestPhones={normalizedGuestPhones}
-                    onImported={handleImportedGuests}
-                    disabled={savingGuest}
-                    className="w-full px-4 py-2.5 md:hidden"
-                  />
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => setIsGuestFormOpen((current) => !current)}
-                  className={`${actionButtonClass} w-full px-4 py-2.5 sm:hidden`}
-                >
-                  {isGuestFormOpen ? <X size={18} /> : <Plus size={18} />}
-                  {isGuestFormOpen ? 'Fechar cadastro' : 'Nova convidada'}
-                </button>
-              </div>
+              <WhatsAppSequentialSender
+                guests={convidadas}
+                getInviteWhatsappUrl={getInviteWhatsappUrl}
+                variant="mockup"
+                className="sm:mt-1"
+              />
             </div>
+
+            <AdminStats
+              variant="wide"
+              className="mt-5"
+              items={[
+                { value: convidadas.length, label: 'convidadas' },
+                { value: confirmedGuestCount, label: 'confirmadas' },
+                { value: pendingGuestCount, label: 'pendentes' },
+              ]}
+            />
+
+            <button
+              type="button"
+              onClick={() => setIsGuestFormOpen((current) => !current)}
+              className={`${actionButtonClass} mt-4 w-full px-4 py-2.5 sm:hidden`}
+            >
+              {isGuestFormOpen ? <X size={18} /> : <Plus size={18} />}
+              {isGuestFormOpen ? 'Fechar cadastro' : 'Nova convidada'}
+            </button>
 
             <form
               onSubmit={handleAddGuest}
-              className={`${isGuestFormOpen ? 'mb-4 flex' : 'hidden'} flex-col rounded-2xl border border-border bg-card p-3 sm:mb-6 sm:flex sm:p-5`}
+              className={`${isGuestFormOpen ? 'mt-4 flex' : 'hidden'} flex-col rounded-2xl border border-[rgba(176,137,104,0.22)] bg-[rgba(255,252,247,0.72)] p-4 sm:mt-6 sm:flex sm:p-5`}
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-gold sm:text-sm">Nova convidada</p>
+                <p className="font-sans text-sm font-semibold uppercase tracking-[0.1em] text-[var(--earth)]">
+                  Nova convidada
+                </p>
                 <button
                   type="button"
                   onClick={() => setIsGuestFormOpen(false)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-[var(--earth)] transition hover:bg-[rgba(120,53,34,0.08)] sm:hidden"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-[var(--earth)] transition hover:bg-[rgba(120,53,34,0.08)] hover:text-wine focus:outline-none focus:ring-2 focus:ring-gold/40 sm:hidden"
                   aria-label="Fechar cadastro"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:gap-3 md:grid-cols-[1.3fr_1fr_auto_auto] md:items-center">
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_auto_auto] lg:items-center">
                 <input
                   type="text"
                   value={guestName}
                   onChange={(event) => setGuestName(event.target.value)}
                   placeholder="Nome completo"
-                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
+                  className="w-full rounded-xl border border-[rgba(176,137,104,0.22)] bg-white px-4 py-3 font-sans text-sm text-[var(--ink)] outline-none transition placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                 />
                 <input
                   type="text"
@@ -1132,37 +1350,64 @@ function AdminPage() {
                   value={guestWhatsapp}
                   onChange={(event) => setGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="WhatsApp com DDD"
-                  className="w-full rounded-2xl border border-input bg-background px-3.5 py-2.5 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40 sm:px-4 sm:py-3"
+                  className="w-full rounded-xl border border-[rgba(176,137,104,0.22)] bg-white px-4 py-3 font-sans text-sm text-[var(--ink)] outline-none transition placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                 />
                 <GuestImportButton
                   existingGuestPhones={normalizedGuestPhones}
                   onImported={handleImportedGuests}
                   disabled={savingGuest}
-                  className="!hidden px-4 py-2.5 md:!inline-flex md:w-auto"
+                  className="!w-full !rounded-xl !border !border-[rgba(176,137,104,0.32)] !bg-[rgba(228,214,198,0.55)] !px-5 !py-3 !text-xs !font-bold !uppercase !tracking-[0.1em] !text-[var(--earth)] hover:!bg-[rgba(176,137,104,0.22)] lg:!w-auto"
                 />
                 <button
                   type="submit"
                   disabled={savingGuest}
-                  className={`${actionButtonClass} w-full px-4 py-2.5 md:w-auto md:justify-self-end`}
+                  className={`${actionButtonClass} w-full gap-2 !rounded-xl !px-5 !py-3 !text-xs !font-bold !uppercase !tracking-[0.1em] lg:w-auto`}
                 >
-                  {savingGuest ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                  {savingGuest ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
                   {savingGuest ? 'Salvando...' : 'Cadastrar'}
                 </button>
               </div>
             </form>
 
+            {convidadas.length > 0 ? (
+              <div className="mb-4 mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+                <AdminSearchInput
+                  value={convidadasSearch}
+                  onChange={(event) => setConvidadasSearch(event.target.value)}
+                  placeholder="Buscar por nome ou telefone..."
+                  variant="soft"
+                  className="w-full lg:min-w-0 lg:flex-1"
+                />
+                <FilterTabs
+                  variant="segment"
+                  value={convidadasFilter}
+                  onChange={setConvidadasFilter}
+                  options={[
+                    { id: 'all', label: 'Todos' },
+                    { id: 'confirmada', label: 'Confirmados' },
+                    { id: 'pendente', label: 'Pendentes' },
+                  ]}
+                />
+              </div>
+            ) : null}
+
             {loadingData ? (
-              <div className="flex justify-center py-20">
+              <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-wine" />
               </div>
             ) : convidadas.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
                 <p className="text-sm leading-relaxed text-muted-foreground">Nenhuma convidada cadastrada ainda.</p>
               </div>
+            ) : filteredConvidadas.length === 0 ? (
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-16">
+                <p className="text-sm leading-relaxed text-muted-foreground">Nenhum resultado para essa busca ou filtro.</p>
+              </div>
             ) : (
-              <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1 sm:gap-3 sm:grid-cols-2">
-                {convidadas.map((item) => (
-                  <article key={item.id} className="self-start rounded-2xl border border-border bg-card p-3 sm:p-4 md:p-3 elegant-shadow">
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                {paginatedConvidadas.map((item) => (
+                  <article key={item.id} className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 elegant-shadow transition-colors hover:border-gold/30">
                     <div className="flex items-start justify-between gap-3">
                       {editingGuestId === item.id ? (
                         <div className="w-full space-y-2">
@@ -1171,7 +1416,7 @@ function AdminPage() {
                             value={editingGuestName}
                             onChange={(event) => setEditingGuestName(event.target.value)}
                             placeholder="Nome completo"
-                            className="w-full rounded-xl border border-input bg-background px-3 py-2 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2.5 font-sans text-base text-[var(--ink)] outline-none transition placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                           />
                           <input
                             type="text"
@@ -1179,17 +1424,17 @@ function AdminPage() {
                             value={editingGuestWhatsapp}
                             onChange={(event) => setEditingGuestWhatsapp(event.target.value.replace(/\D/g, '').slice(0, 11))}
                             placeholder="WhatsApp com DDD"
-                            className="w-full rounded-xl border border-input bg-background px-3 py-2 font-sans text-base font-medium text-[var(--ink)] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
+                            className="w-full rounded-xl border border-input bg-background px-3 py-2.5 font-sans text-base text-[var(--ink)] outline-none transition placeholder:text-muted-foreground focus:border-gold/60 focus:ring-2 focus:ring-gold/40"
                           />
                         </div>
                       ) : (
-                        <div>
-                          <p className="font-sans text-lg leading-snug font-semibold tracking-[0.01em] text-wine sm:text-xl">{item.nome}</p>
-                          <p className="font-sans text-sm leading-relaxed text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
+                        <div className="min-w-0">
+                          <p className="truncate font-sans text-base leading-snug font-semibold text-wine sm:text-lg">{item.nome}</p>
+                          <p className="mt-0.5 truncate font-sans text-sm text-muted-foreground">{formatWhatsapp(item.whatsapp)}</p>
                         </div>
                       )}
 
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.08em] ${
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${
                         item.status === 'confirmada'
                           ? 'bg-[rgba(60,138,86,0.15)] text-[rgb(52,112,72)]'
                           : 'bg-[rgba(179,90,60,0.12)] text-[var(--rust)]'
@@ -1199,7 +1444,7 @@ function AdminPage() {
                     </div>
 
                     {editingGuestId === item.id ? (
-                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <div className="mt-auto grid gap-2 pt-3 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={() => handleUpdateGuest(item.id)}
@@ -1221,14 +1466,14 @@ function AdminPage() {
                         </button>
                       </div>
                     ) : (
-                      <div className="mt-3">
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className="mt-auto pt-3">
+                        <div className="grid grid-cols-3 gap-1.5">
                           <a
                             href={getInviteWhatsappUrl(item) ?? '#'}
                             onClick={(event) => handleInviteLinkClick(event, item)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(60,138,86,0.28)] bg-[rgba(60,138,86,0.12)] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.2)] md:h-8"
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(60,138,86,0.28)] bg-[rgba(60,138,86,0.12)] text-[rgb(52,112,72)] transition hover:bg-[rgba(60,138,86,0.22)] hover:border-[rgba(60,138,86,0.45)] focus:outline-none focus:ring-2 focus:ring-[rgba(60,138,86,0.4)] sm:h-9"
                             aria-label={`Enviar convite para ${item.nome}`}
                           >
                             <MessageCircle size={16} />
@@ -1238,7 +1483,7 @@ function AdminPage() {
                             type="button"
                             onClick={() => handleStartGuestEdit(item)}
                             disabled={deletingGuestId === item.id}
-                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(176,137,104,0.32)] bg-[rgba(228,214,198,0.44)] text-[var(--earth)] transition hover:bg-[rgba(176,137,104,0.2)] disabled:cursor-not-allowed md:h-8"
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(176,137,104,0.32)] bg-[rgba(228,214,198,0.44)] text-[var(--earth)] transition hover:bg-[rgba(176,137,104,0.22)] hover:border-[rgba(176,137,104,0.5)] focus:outline-none focus:ring-2 focus:ring-gold/30 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9"
                             aria-label={`Editar ${item.nome}`}
                           >
                             <Pencil size={16} />
@@ -1248,40 +1493,34 @@ function AdminPage() {
                             type="button"
                             onClick={() => handleDeleteGuest(item.id)}
                             disabled={deletingGuestId === item.id}
-                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[rgba(179,90,60,0.28)] bg-[rgba(179,90,60,0.12)] text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.2)] disabled:cursor-not-allowed md:h-8"
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-[rgba(179,90,60,0.28)] bg-[rgba(179,90,60,0.12)] text-[var(--rust)] transition hover:bg-[rgba(179,90,60,0.22)] hover:border-[rgba(179,90,60,0.45)] focus:outline-none focus:ring-2 focus:ring-[rgba(179,90,60,0.35)] disabled:cursor-not-allowed disabled:opacity-50 sm:h-9"
                             aria-label={`Excluir ${item.nome}`}
                           >
                             {deletingGuestId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                           </button>
                         </div>
 
-                        <div className="mt-1 grid grid-cols-3 gap-2 text-center">
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[rgb(52,112,72)] md:text-[10px]">Enviar</span>
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--earth)] md:text-[10px]">Editar</span>
-                          <span className="font-sans text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--rust)] md:text-[10px]">Excluir</span>
+                        <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-center">
+                          <span className="font-sans text-[10px] font-medium uppercase tracking-wider text-[rgb(52,112,72)]">Enviar</span>
+                          <span className="font-sans text-[10px] font-medium uppercase tracking-wider text-[var(--earth)]">Editar</span>
+                          <span className="font-sans text-[10px] font-medium uppercase tracking-wider text-[var(--rust)]">Excluir</span>
                         </div>
                       </div>
                     )}
                   </article>
                 ))}
-              </div>
+                </div>
+                <Pagination
+                  currentPage={convidadasPage}
+                  totalPages={convidadasTotalPages}
+                  onPageChange={handleConvidadasPageChange}
+                />
+              </>
             )}
           </section>
         )}
+        </div>
       </div>
-
-      <AddGiftModal
-        isOpen={isModalOpen}
-        giftName={giftName}
-        onGiftNameChange={setGiftName}
-        onClose={() => {
-          if (savingGift) return
-          setIsModalOpen(false)
-          setGiftName('')
-        }}
-        onSubmit={handleAddGift}
-        loading={savingGift}
-      />
     </main>
   )
 }
