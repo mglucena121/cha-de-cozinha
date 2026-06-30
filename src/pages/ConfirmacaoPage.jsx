@@ -3,9 +3,6 @@ import { Gift, Loader2, Send, CircleAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'react-router-dom'
 import { createInviteClient } from '../lib/supabase'
-import Pagination from '../components/admin/Pagination'
-
-const GIFTS_PAGE_SIZE = 8
 
 function ConfirmacaoPage() {
   const [searchParams] = useSearchParams()
@@ -18,7 +15,6 @@ function ConfirmacaoPage() {
   const [reservedByGiftId, setReservedByGiftId] = useState({})
   const [loadingPage, setLoadingPage] = useState(true)
   const [confirming, setConfirming] = useState(false)
-  const [giftsPage, setGiftsPage] = useState(1)
 
   const loadInviteData = useCallback(async ({ silent = false } = {}) => {
     if (!token) {
@@ -119,17 +115,6 @@ function ConfirmacaoPage() {
       inviteClient.removeChannel(channel)
     }
   }, [inviteClient, loadInviteData, token])
-
-  useEffect(() => {
-    setGiftsPage(1)
-  }, [presentes.length])
-
-  const paginatedPresentes = useMemo(() => {
-    const start = (giftsPage - 1) * GIFTS_PAGE_SIZE
-    return presentes.slice(start, start + GIFTS_PAGE_SIZE)
-  }, [presentes, giftsPage])
-
-  const giftsTotalPages = Math.max(1, Math.ceil(presentes.length / GIFTS_PAGE_SIZE))
 
   const handleConfirm = async (event) => {
     event.preventDefault()
@@ -255,9 +240,8 @@ function ConfirmacaoPage() {
                   Nenhum presente disponível no momento.
                 </div>
               ) : (
-                <>
-                <div className="grid gap-2">
-                  {paginatedPresentes.map((item) => {
+                <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:max-h-80">
+                  {presentes.map((item) => {
                     const isSelected = selectedGiftId === item.id
                     const isReserved = Boolean(reservedByGiftId[item.id])
 
@@ -302,15 +286,6 @@ function ConfirmacaoPage() {
                     )
                   })}
                 </div>
-                <Pagination
-                  page={giftsPage}
-                  totalPages={giftsTotalPages}
-                  totalItems={presentes.length}
-                  pageSize={GIFTS_PAGE_SIZE}
-                  onPageChange={setGiftsPage}
-                  itemLabel="presentes"
-                />
-                </>
               )}
             </div>
 
