@@ -289,17 +289,14 @@ function AdminPage() {
 
   const handlePresentesPageChange = useCallback((page) => {
     setPresentesPage(page)
-    scrollContentToTop(contentScrollRef)
   }, [])
 
   const handleConfirmacoesPageChange = useCallback((page) => {
     setConfirmacoesPage(page)
-    scrollContentToTop(contentScrollRef)
   }, [])
 
   const handleConvidadasPageChange = useCallback((page) => {
     setConvidadasPage(page)
-    scrollContentToTop(contentScrollRef)
   }, [])
 
   const handleLogout = async () => {
