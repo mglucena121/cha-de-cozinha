@@ -496,7 +496,11 @@ function AdminPage() {
       .single()
 
     if (error) {
-      toast.error(error.message)
+      if (error.code === 'PGRST116') {
+        toast.error('Não foi possível atualizar o presente. Confirme a policy de UPDATE em presentes no Supabase.')
+      } else {
+        toast.error(error.message)
+      }
       setUpdatingGiftId(null)
       return
     }

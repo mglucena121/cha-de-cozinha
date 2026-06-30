@@ -85,6 +85,17 @@ begin
   end if;
 
   if not exists (
+    select 1 from pg_policies where schemaname = 'public' and tablename = 'presentes' and policyname = 'presentes_update_authenticated'
+  ) then
+    create policy presentes_update_authenticated
+      on public.presentes
+      for update
+      to authenticated
+      using (true)
+      with check (true);
+  end if;
+
+  if not exists (
     select 1 from pg_policies where schemaname = 'public' and tablename = 'confirmacoes' and policyname = 'confirmacoes_select_authenticated'
   ) then
     create policy confirmacoes_select_authenticated
